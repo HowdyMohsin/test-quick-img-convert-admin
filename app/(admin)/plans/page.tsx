@@ -18,7 +18,7 @@ const LIMITS: { key: string; label: string; unit: string; icon: LucideIcon }[] =
 ];
 
 // Free-plan limits used as the starting point for a new plan.
-const NEW_PLAN_LIMITS = { daily: 25, batch: 10, img_mb: 200, aud_mb: 100, vid_mb: 500, vid_min: 30, parallel: 2, ads: true, editor: false, priority: false, gps_remover: false, compare: false, batch_rename: false, target_size: false };
+const NEW_PLAN_LIMITS = { daily: 25, batch: 10, img_mb: 200, aud_mb: 100, vid_mb: 500, vid_min: 30, parallel: 2, ads: true, editor: false, priority: false, gps_remover: false, compare: false, batch_rename: false, target_size: false, compress_toggle: false, ai_data_remover: false };
 
 const slugify = (name: string) => name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50);
 
@@ -33,6 +33,8 @@ function PlanLimits({ limits }: { limits: any }) {
     { label: 'Before/After compare', on: !!limits?.compare, onText: 'Included', offText: 'Not included' },
     { label: 'Batch rename pattern', on: !!limits?.batch_rename, onText: 'Included', offText: 'Not included' },
     { label: 'Target file size', on: !!limits?.target_size, onText: 'Included', offText: 'Not included' },
+    { label: 'Compress toggle', on: !!limits?.compress_toggle, onText: 'Included', offText: 'Not included' },
+    { label: 'AI data remover', on: !!limits?.ai_data_remover, onText: 'Included', offText: 'Not included' },
   ];
   return <ul className="space-y-2 text-sm text-muted">
     {LIMITS.map(({ key, label, unit, icon: Icon }) => (
@@ -146,6 +148,8 @@ export default function Plans() {
         <div className="flex items-center gap-2 text-sm"><Switch checked={!!form.limits?.compare} onChange={(v:boolean)=>setForm({...form,limits:{...form.limits,compare:v}})} label="Before/After compare" /> Before/After compare <span className="text-muted">— compare original vs converted with a slider</span></div>
         <div className="flex items-center gap-2 text-sm"><Switch checked={!!form.limits?.batch_rename} onChange={(v:boolean)=>setForm({...form,limits:{...form.limits,batch_rename:v}})} label="Batch rename pattern" /> Batch rename pattern <span className="text-muted">— rename a whole batch with a pattern like photo-&#123;n&#125;</span></div>
         <div className="flex items-center gap-2 text-sm"><Switch checked={!!form.limits?.target_size} onChange={(v:boolean)=>setForm({...form,limits:{...form.limits,target_size:v}})} label="Target file size" /> Target file size <span className="text-muted">— convert to a target file size, quality adjusts automatically</span></div>
+        <div className="flex items-center gap-2 text-sm"><Switch checked={!!form.limits?.compress_toggle} onChange={(v:boolean)=>setForm({...form,limits:{...form.limits,compress_toggle:v}})} label="Compress toggle" /> Compress toggle <span className="text-muted">— let users turn compression on or off (off = no compression)</span></div>
+        <div className="flex items-center gap-2 text-sm"><Switch checked={!!form.limits?.ai_data_remover} onChange={(v:boolean)=>setForm({...form,limits:{...form.limits,ai_data_remover:v}})} label="AI data remover" /> AI data remover <span className="text-muted">— strip AI metadata (EXIF, XMP, C2PA, PNG text) from converted images</span></div>
         <Input label="Paddle monthly price id" value={form.provider_price_ids?.paddle_monthly||''} onChange={(e:any)=>setForm({...form,provider_price_ids:{...form.provider_price_ids,paddle_monthly:e.target.value}})} />
         <Input label="Paddle yearly price id" value={form.provider_price_ids?.paddle_yearly||''} onChange={(e:any)=>setForm({...form,provider_price_ids:{...form.provider_price_ids,paddle_yearly:e.target.value}})} />
         <Input label="Lemon Squeezy monthly variant id" value={form.provider_price_ids?.lemonsqueezy_monthly||''} onChange={(e:any)=>setForm({...form,provider_price_ids:{...form.provider_price_ids,lemonsqueezy_monthly:e.target.value}})} />
