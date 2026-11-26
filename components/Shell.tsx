@@ -47,6 +47,19 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const [pending, setPending] = React.useState<number | null>(null);
   const [openGroups, setOpenGroups] = React.useState<Record<string, boolean>>({});
   const [titleOverride, setTitleOverride] = React.useState<{ title: string; breadcrumb?: string } | null>(null);
+  // setPageTitle must keep a stable identity: the user-detail page runs an
+  // effect on it, and the old inline arrow here created a new function on
+  // every render, which re-ran that effect forever and froze navigation
+  // (each run called setTitleOverride with a fresh object, so React kept
+  // re-rendering). The functional set also bails out when nothing changed,
+  // so even a stray extra call cannot trigger a re-render.
+  const setPageTitle = React.useCallback((title: string, breadcrumb?: string) => {
+    setTitleOverride(prev => {
+      if (prev && prev.title === title && prev.breadcrumb === breadcrumb) return prev;
+      return { title, breadcrumb };
+    });
+  }, []);
+  const pageTitleValue = React.useMemo(() => ({ setPageTitle }), [setPageTitle]);
   // A page's dynamic title never survives navigation.
   React.useEffect(() => { setTitleOverride(null); }, [pathname]);
   // Auth guard: the admin panel never renders as a signed-in user until
@@ -156,7 +169,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     </div>;
   }
   return (
-    <PageTitleContext.Provider value={{ setPageTitle: (t, b) => setTitleOverride({ title: t, breadcrumb: b }) }}>
+    <PageTitleContext.Provider value={pageTitleValue}>
     <div className="flex min-h-screen bg-soft text-ink">
       <aside className={`fixed inset-y-0 left-0 z-40 hidden transition-all lg:block ${collapsed ? 'w-[72px]' : 'w-[264px]'}`} aria-label="Sidebar">
         {sidebar(false)}

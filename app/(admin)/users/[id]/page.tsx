@@ -13,7 +13,14 @@ export default function UserDetail({ params }: { params: { id: string } }) {
   const load = () => { setLoading(true); get(`/admin/users/${params.id}`).then((j:any)=>setU(j.user||j)).catch(setErr).finally(()=>setLoading(false)); };
   React.useEffect(load, []);
   const { setPageTitle } = React.useContext(PageTitleContext);
-  React.useEffect(() => { if (u) setPageTitle(u.display_name || u.email || 'User', 'Customers / Users / Detail'); }, [u, setPageTitle]);
+  const lastTitle = React.useRef('');
+  React.useEffect(() => {
+    if (!u) return;
+    const title = u.display_name || u.email || 'User';
+    if (lastTitle.current === title) return;
+    lastTitle.current = title;
+    setPageTitle(title, 'Customers / Users / Detail');
+  }, [u, setPageTitle]);
   const act = async (fn: () => Promise<any>, ok: string) => { try { await fn(); setMsg(ok); load(); } catch (e:any) { setErr(e); } };
   if (loading && !u) return <Spinner />;
   if (err && !u) return <Err error={err} onRetry={load} />;
