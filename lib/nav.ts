@@ -1,45 +1,74 @@
-export type NavItem = { id: string; label: string; href?: string; icon: string; perm: string; badge?: 'pending'; children?: NavItem[] };
+import type { LucideIcon } from 'lucide-react';
+import {
+  AlertTriangle,
+  BarChart3,
+  CreditCard,
+  DollarSign,
+  FileType,
+  Gauge,
+  Globe,
+  Inbox,
+  Layers,
+  LayoutDashboard,
+  LayoutGrid,
+  ListChecks,
+  Mail,
+  Megaphone,
+  MessageSquare,
+  Plug,
+  RefreshCw,
+  Scale,
+  ScrollText,
+  Settings,
+  Tags,
+  TicketPercent,
+  UserCog,
+  Users,
+  Webhook,
+} from 'lucide-react';
+
+export type NavItem = { id: string; label: string; href?: string; icon: LucideIcon; perm: string; badge?: 'pending'; children?: NavItem[] };
 export type NavGroup = { label: string; items: NavItem[] };
 export const NAV: NavGroup[] = [
-  { label: 'Overview', items: [{ id: 'dashboard', label: 'Dashboard', href: '/', icon: '▦', perm: 'dashboard' }] },
+  { label: 'Overview', items: [{ id: 'dashboard', label: 'Dashboard', href: '/', icon: LayoutDashboard, perm: 'dashboard' }] },
   { label: 'Customers', items: [
-    { id: 'users', label: 'Users', href: '/users', icon: '◉', perm: 'users' },
-    { id: 'payments', label: 'Payments', icon: '▤', perm: 'payments', children: [
-      { id: 'requests', label: 'Requests', href: '/payments/requests', icon: '✉', perm: 'payments', badge: 'pending' },
-      { id: 'subscriptions', label: 'Subscriptions', href: '/payments/subscriptions', icon: '↻', perm: 'payments' },
-      { id: 'providers', label: 'Providers', href: '/payments/providers', icon: '⬡', perm: 'payments' },
-      { id: 'webhooks', label: 'Webhook Log', href: '/payments/webhooks', icon: '⌁', perm: 'payments' },
+    { id: 'users', label: 'Users', href: '/users', icon: Users, perm: 'users' },
+    { id: 'payments', label: 'Payments', icon: CreditCard, perm: 'payments', children: [
+      { id: 'requests', label: 'Requests', href: '/payments/requests', icon: Inbox, perm: 'payments', badge: 'pending' },
+      { id: 'subscriptions', label: 'Subscriptions', href: '/payments/subscriptions', icon: RefreshCw, perm: 'payments' },
+      { id: 'providers', label: 'Providers', href: '/payments/providers', icon: Plug, perm: 'payments' },
+      { id: 'webhooks', label: 'Webhook Log', href: '/payments/webhooks', icon: Webhook, perm: 'payments' },
     ]},
   ]},
   { label: 'Catalog', items: [
-    { id: 'plans-coupons', label: 'Plans and Coupons', icon: '❖', perm: 'plans', children: [
-      { id: 'plans', label: 'Plans', href: '/plans', icon: '▣', perm: 'plans' },
-      { id: 'coupons', label: 'Coupons', href: '/coupons', icon: '✂', perm: 'plans' },
+    { id: 'plans-coupons', label: 'Plans and Coupons', icon: Tags, perm: 'plans', children: [
+      { id: 'plans', label: 'Plans', href: '/plans', icon: Layers, perm: 'plans' },
+      { id: 'coupons', label: 'Coupons', href: '/coupons', icon: TicketPercent, perm: 'plans' },
     ]},
-    { id: 'formats', label: 'Formats', href: '/formats', icon: '⧉', perm: 'formats' },
+    { id: 'formats', label: 'Formats', href: '/formats', icon: FileType, perm: 'formats' },
   ]},
   { label: 'Monetization', items: [
-    { id: 'ads', label: 'Ads', icon: '▭', perm: 'ads', children: [
-      { id: 'slots', label: 'Slots', href: '/ads/slots', icon: '▤', perm: 'ads' },
-      { id: 'networks', label: 'Networks and ads.txt', href: '/ads/networks', icon: '🌐', perm: 'ads' },
-      { id: 'revenue', label: 'Revenue and RPM', href: '/ads/revenue', icon: '$', perm: 'ads' },
+    { id: 'ads', label: 'Ads', icon: Megaphone, perm: 'ads', children: [
+      { id: 'slots', label: 'Slots', href: '/ads/slots', icon: LayoutGrid, perm: 'ads' },
+      { id: 'networks', label: 'Networks and ads.txt', href: '/ads/networks', icon: Globe, perm: 'ads' },
+      { id: 'revenue', label: 'Revenue and RPM', href: '/ads/revenue', icon: DollarSign, perm: 'ads' },
     ]},
-    { id: 'popups', label: 'Popups and Banners', href: '/popups', icon: '▢', perm: 'popups' },
+    { id: 'popups', label: 'Popups and Banners', href: '/popups', icon: MessageSquare, perm: 'popups' },
   ]},
   { label: 'Operations', items: [
-    { id: 'jobs', label: 'Jobs', href: '/jobs', icon: '☰', perm: 'jobs' },
-    { id: 'reports', label: 'Reports', href: '/reports', icon: '📊', perm: 'reports' },
+    { id: 'jobs', label: 'Jobs', href: '/jobs', icon: ListChecks, perm: 'jobs' },
+    { id: 'reports', label: 'Reports', href: '/reports', icon: BarChart3, perm: 'reports' },
   ]},
   { label: 'System', items: [
-    { id: 'team', label: 'Team', href: '/team', icon: '👥', perm: 'team' },
-    { id: 'settings', label: 'Settings', icon: '⚙', perm: 'settings', children: [
-      { id: 'general', label: 'General', href: '/settings/general', icon: '⚙', perm: 'settings' },
-      { id: 'legal', label: 'Legal pages', href: '/settings/legal', icon: '§', perm: 'settings' },
-      { id: 'email', label: 'Email and templates', href: '/settings/email', icon: '✉', perm: 'settings' },
-      { id: 'limits', label: 'Limits and retention', href: '/settings/limits', icon: '◷', perm: 'settings' },
-      { id: 'danger', label: 'Danger zone', href: '/settings/danger', icon: '⚠', perm: 'settings' },
+    { id: 'team', label: 'Team', href: '/team', icon: UserCog, perm: 'team' },
+    { id: 'settings', label: 'Settings', icon: Settings, perm: 'settings', children: [
+      { id: 'general', label: 'General', href: '/settings/general', icon: Settings, perm: 'settings' },
+      { id: 'legal', label: 'Legal pages', href: '/settings/legal', icon: Scale, perm: 'settings' },
+      { id: 'email', label: 'Email and templates', href: '/settings/email', icon: Mail, perm: 'settings' },
+      { id: 'limits', label: 'Limits and retention', href: '/settings/limits', icon: Gauge, perm: 'settings' },
+      { id: 'danger', label: 'Danger zone', href: '/settings/danger', icon: AlertTriangle, perm: 'settings' },
     ]},
-    { id: 'audit', label: 'Audit Log', href: '/audit', icon: '≡', perm: 'audit' },
+    { id: 'audit', label: 'Audit Log', href: '/audit', icon: ScrollText, perm: 'audit' },
   ]},
 ];
 export const ALL_PERMS = ['dashboard','users','payments','plans','formats','ads','popups','jobs','reports','team','settings','audit'];

@@ -2,6 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { ChevronDown, ChevronRight, ChevronsLeft, ChevronsRight, Menu } from 'lucide-react';
 import { BRAND } from '@/lib/brand';
 import { filterNav } from '@/lib/nav';
 import { api, get } from '@/lib/api';
@@ -56,41 +57,44 @@ export default function Shell({ children, title, breadcrumb }: { children: React
   };
   const signOut = async () => { try { await api('/admin/auth/logout', { method: 'POST' }); } catch {} router.push('/login'); };
   const sidebar = (mobile: boolean) => (
-    <div className={`flex h-full flex-col overflow-hidden bg-ink text-white ${collapsed && !mobile ? 'w-[72px]' : 'w-[264px]'}`} role="navigation" aria-label="Admin sections">
+    <div className={`flex h-full flex-col overflow-hidden bg-ink text-white transition-[width] duration-200 ${collapsed && !mobile ? 'w-[72px]' : 'w-[264px]'}`} role="navigation" aria-label="Admin sections">
       <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-primary text-lg font-extrabold" aria-hidden>⚡</span>
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-primary text-lg font-extrabold" aria-hidden>Q</span>
         {!collapsed && !mobile && <div className="min-w-0"><p className="truncate text-sm font-bold leading-tight">{BRAND.name}</p><p className="text-xs text-slate-400">Admin</p></div>}
         {mobile && <div className="min-w-0"><p className="truncate text-sm font-bold leading-tight">{BRAND.name}</p><p className="text-xs text-slate-400">Admin</p></div>}
       </div>
-      <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
+      <nav className="no-scrollbar min-h-0 flex-1 overflow-y-auto px-2 py-3">
         {groups.map(g => (
           <div key={g.label} className="mb-4">
             {(!collapsed || mobile) && <p className="px-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">{g.label}</p>}
             {g.items.map(it => {
+              const Icon = it.icon;
               if (it.children) {
                 const open = openGroups[it.id] ?? false;
                 const activeChild = it.children.some(c => isActive(c.href));
                 return <div key={it.id}>
                   <button onClick={() => toggleGroup(it.id)} aria-expanded={open} title={collapsed && !mobile ? it.label : undefined}
                     className={`flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-sm font-medium ${activeChild ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5'}`}>
-                    <span className="w-5 text-center" aria-hidden>{it.icon}</span>
+                    <Icon className="h-5 w-5 shrink-0" aria-hidden />
                     {(!collapsed || mobile) && <span className="flex-1 text-left">{it.label}</span>}
-                    {(!collapsed || mobile) && <span aria-hidden>{open ? '▾' : '▸'}</span>}
+                    {(!collapsed || mobile) && (open ? <ChevronDown className="h-4 w-4 shrink-0" aria-hidden /> : <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />)}
                   </button>
                   {open && (!collapsed || mobile) && <div className="ml-4 mt-1 border-l-2 border-primary/60 pl-2">
-                    {it.children.map(c => (
+                    {it.children.map(c => {
+                      const ChildIcon = c.icon;
+                      return (
                       <Link key={c.id} href={c.href!} aria-current={isActive(c.href) ? 'page' : undefined}
                         className={`flex items-center gap-2 rounded-[10px] px-3 py-2 text-sm ${isActive(c.href) ? 'bg-primary/20 font-semibold text-white' : 'text-slate-300 hover:bg-white/5'}`}>
-                        <span className="w-4 text-center" aria-hidden>{c.icon}</span>{c.label}
+                        <ChildIcon className="h-4 w-4 shrink-0" aria-hidden />{c.label}
                         {c.badge === 'pending' && pending !== null && pending > 0 && <span className="ml-auto rounded-full bg-danger px-2 py-0.5 text-[11px] font-bold text-white">{pending}</span>}
-                      </Link>))}
+                      </Link>);})}
                   </div>}
                 </div>;
               }
               return <Link key={it.id} href={it.href!} aria-current={isActive(it.href) ? 'page' : undefined} title={collapsed && !mobile ? it.label : undefined}
                 className={`relative mb-0.5 flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-sm font-medium ${isActive(it.href) ? 'bg-primary/20 text-white' : 'text-slate-300 hover:bg-white/5'}`}>
                 {isActive(it.href) && <span className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-full bg-primary" aria-hidden />}
-                <span className="w-5 text-center" aria-hidden>{it.icon}</span>
+                <Icon className="h-5 w-5 shrink-0" aria-hidden />
                 {(!collapsed || mobile) && <span>{it.label}</span>}
               </Link>;
             })}
@@ -115,12 +119,12 @@ export default function Shell({ children, title, breadcrumb }: { children: React
       <aside className={`fixed inset-y-0 left-0 z-40 hidden transition-all lg:block ${collapsed ? 'w-[72px]' : 'w-[264px]'}`} aria-label="Sidebar">
         {sidebar(false)}
         <button className="absolute -right-0 top-[68px] z-50 hidden h-7 w-7 translate-x-1/2 items-center justify-center rounded-full border border-line bg-surface text-sm font-bold text-ink shadow-md hover:bg-soft lg:flex"
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} onClick={toggleCollapsed}>{collapsed ? '»' : '«'}</button>
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} onClick={toggleCollapsed}>{collapsed ? <ChevronsRight className="h-4 w-4" /> : <ChevronsLeft className="h-4 w-4" />}</button>
       </aside>
       {drawer && <div className="fixed inset-0 z-50 lg:hidden"><div className="absolute inset-0 bg-black/50" onClick={() => setDrawer(false)} /> <aside className="absolute inset-y-0 left-0">{sidebar(true)}</aside></div>}
       <div className={`flex min-w-0 flex-1 flex-col ${collapsed ? 'lg:pl-[72px]' : 'lg:pl-[264px]'}`}>
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-surface px-4">
-          <button className="rounded-[10px] px-3 py-2 text-lg hover:bg-soft lg:hidden" aria-label="Open menu" onClick={() => setDrawer(true)}>☰</button>
+          <button className="flex items-center justify-center rounded-[10px] p-2 hover:bg-soft lg:hidden" aria-label="Open menu" onClick={() => setDrawer(true)}><Menu className="h-5 w-5" /></button>
           <div className="min-w-0 flex-1"><h1 className="truncate text-base font-bold">{title}</h1>{breadcrumb && <p className="truncate text-xs text-muted">{breadcrumb}</p>}</div>
           <Link href="/payments/requests" title="Payment requests awaiting approval" className="flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-semibold hover:bg-soft">
             Pending payment approvals {pending !== null && pending > 0 ? <span className="rounded-full bg-danger px-2 py-0.5 text-xs font-bold text-white">{pending}</span> : <span className="rounded-full bg-soft px-2 py-0.5 text-xs text-muted">{pending ?? 0}</span>}
