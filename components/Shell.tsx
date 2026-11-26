@@ -111,16 +111,16 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   };
   const signOut = async () => { try { await api('/admin/auth/logout', { method: 'POST' }); } catch {} router.push('/login'); };
   const sidebar = (mobile: boolean) => (
-    <div className={`flex h-full flex-col overflow-hidden bg-primary text-white transition-[width] duration-200 ${collapsed && !mobile ? 'w-[72px]' : 'w-[264px]'}`} role="navigation" aria-label="Admin sections">
+    <div className={`flex h-full flex-col overflow-hidden bg-blue-900 text-white transition-[width] duration-200 ${collapsed && !mobile ? 'w-[72px]' : 'w-[264px]'}`} role="navigation" aria-label="Admin sections">
       <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-white text-lg font-extrabold text-primary" aria-hidden>Q</span>
-        {!collapsed && !mobile && <div className="min-w-0"><p className="truncate text-sm font-bold leading-tight">{BRAND.name}</p><p className="text-xs text-indigo-200">Admin</p></div>}
-        {mobile && <div className="min-w-0"><p className="truncate text-sm font-bold leading-tight">{BRAND.name}</p><p className="text-xs text-indigo-200">Admin</p></div>}
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-white text-lg font-extrabold text-blue-900" aria-hidden>Q</span>
+        {!collapsed && !mobile && <div className="min-w-0"><p className="truncate text-sm font-bold leading-tight">{BRAND.name}</p><p className="text-xs text-blue-200">Admin</p></div>}
+        {mobile && <div className="min-w-0"><p className="truncate text-sm font-bold leading-tight">{BRAND.name}</p><p className="text-xs text-blue-200">Admin</p></div>}
       </div>
       <nav className="no-scrollbar min-h-0 flex-1 overflow-y-auto px-2 py-3">
         {groups.map(g => (
           <div key={g.label} className="mb-4">
-            {(!collapsed || mobile) && <p className="px-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-indigo-200">{g.label}</p>}
+            {(!collapsed || mobile) && <p className="px-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-blue-200">{g.label}</p>}
             {g.items.map(it => {
               const Icon = it.icon;
               if (it.children) {
@@ -128,7 +128,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 const activeChild = it.children.some(c => isActive(c.href));
                 return <div key={it.id}>
                   <button onClick={() => toggleGroup(it.id)} aria-expanded={open} title={collapsed && !mobile ? it.label : undefined}
-                    className={`flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-sm font-medium transition-colors ${activeChild ? 'bg-indigo-700 text-white' : 'text-white/85 hover:bg-white/10'}`}>
+                    className={`flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-sm font-medium transition-colors ${activeChild ? 'bg-blue-950 text-white' : 'text-white/85 hover:bg-white/10'}`}>
                     <Icon className="h-5 w-5 shrink-0" aria-hidden />
                     {(!collapsed || mobile) && <span className="flex-1 text-left">{it.label}</span>}
                     {(!collapsed || mobile) && (open ? <ChevronDown className="h-4 w-4 shrink-0" aria-hidden /> : <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />)}
@@ -138,7 +138,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                       const ChildIcon = c.icon;
                       return (
                       <Link key={c.id} href={c.href!} aria-current={isActive(c.href) ? 'page' : undefined}
-                        className={`flex items-center gap-2 rounded-[10px] px-3 py-2 text-sm transition-colors ${isActive(c.href) ? 'bg-indigo-700 font-semibold text-white' : 'text-white/85 hover:bg-white/10'}`}>
+                        className={`flex items-center gap-2 rounded-[10px] px-3 py-2 text-sm transition-colors ${isActive(c.href) ? 'bg-blue-950 font-semibold text-white' : 'text-white/85 hover:bg-white/10'}`}>
                         <ChildIcon className="h-4 w-4 shrink-0" aria-hidden />{c.label}
                         {c.badge === 'pending' && pending !== null && pending > 0 && <span className="ml-auto rounded-full bg-danger px-2 py-0.5 text-[11px] font-bold text-white">{pending}</span>}
                       </Link>);})}
@@ -146,7 +146,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 </div>;
               }
               return <Link key={it.id} href={it.href!} aria-current={isActive(it.href) ? 'page' : undefined} title={collapsed && !mobile ? it.label : undefined}
-                className={`relative mb-0.5 flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-sm font-medium transition-colors ${isActive(it.href) ? 'bg-indigo-700 text-white' : 'text-white/85 hover:bg-white/10'}`}>
+                className={`relative mb-0.5 flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-sm font-medium transition-colors ${isActive(it.href) ? 'bg-blue-950 text-white' : 'text-white/85 hover:bg-white/10'}`}>
                 {isActive(it.href) && <span className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-full bg-white" aria-hidden />}
                 <Icon className="h-5 w-5 shrink-0" aria-hidden />
                 {(!collapsed || mobile) && <span>{it.label}</span>}
@@ -157,8 +157,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       </nav>
       <div className="shrink-0 border-t border-white/10 p-3">
         <div className="flex items-center gap-3 rounded-[12px] px-2 py-2">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-sm font-bold text-primary" title={admin.display_name || admin.name || admin.email || 'Admin'}>{initials(admin.display_name || admin.name || admin.email || 'Admin', admin.email)}</span>
-          {(!collapsed || mobile) && <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{admin.display_name || admin.name || admin.email || 'Admin'}</p><p className="truncate text-xs text-indigo-200">{admin.role || 'admin'}</p></div>}
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-sm font-bold text-blue-900" title={admin.display_name || admin.name || admin.email || 'Admin'}>{initials(admin.display_name || admin.name || admin.email || 'Admin', admin.email)}</span>
+          {(!collapsed || mobile) && <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{admin.display_name || admin.name || admin.email || 'Admin'}</p><p className="truncate text-xs text-blue-200">{admin.role || 'admin'}</p></div>}
           {(!collapsed || mobile) && <button onClick={signOut} className="rounded-[8px] px-2 py-1 text-xs font-semibold text-white/85 transition-colors hover:bg-white/10" title="Sign out">Sign out</button>}
         </div>
         {collapsed && !mobile && <button onClick={signOut} className="mt-1 w-full rounded-[8px] px-2 py-1 text-xs text-white/85 transition-colors hover:bg-white/10">Sign out</button>}
