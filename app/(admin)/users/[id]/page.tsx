@@ -22,6 +22,9 @@ export default function UserDetail({ params }: { params: { id: string } }) {
     setPageTitle(title, 'Customers / Users / Detail');
   }, [u, setPageTitle]);
   const act = async (fn: () => Promise<any>, ok: string) => { try { await fn(); setMsg(ok); load(); } catch (e:any) { setErr(e); } };
+  // Notes are a single free-text string on the backend (PATCH /admin/users/{id}/notes {notes}),
+  // not a list of note objects — appending means sending the existing text plus the new line.
+  const saveNote = async () => { const existing = typeof u.notes === 'string' ? u.notes.replace(/\s+$/, '') : ''; const combined = existing ? existing + '\n' + note.trim() : note.trim(); try { await patch(`/admin/users/${u.id}/notes`, {notes: combined}); setMsg('Note saved.'); setNote(''); load(); } catch (e:any) { setErr(e); } };
   if (loading && !u) return <Spinner />;
   if (err && !u) return <Err error={err} onRetry={load} />;
   const sub = u.subscription || {}; const usage = u.usage || {};
@@ -41,16 +44,17 @@ export default function UserDetail({ params }: { params: { id: string } }) {
     {tab==='subscription' && <Card className="mt-4"><CardHead title="Subscription" action={<Btn onClick={()=>setPlanOpen(true)}>Change plan</Btn>} />
       <div className="space-y-2 p-5 text-sm"><p>Plan: <b>{sub.plan || u.plan || 'free'}</b> · Status: <Badge tone={sub.status==='active'?'success':'soft'}>{sub.status || 'none'}</Badge></p>
       <p>Provider: {sub.provider_key || '—'} · Period ends: {fmtDate(sub.current_period_end)}</p><p>Interval: {sub.interval || '—'}</p>
-      <div className="flex gap-2 pt-2"><Btn variant="secondary" onClick={()=>act(()=>post(`/admin/users/${u.id}/subscription/extend`,{days:30}),'Manual period extended by 30 days.')}>Extend 30 days</Btn>
-      <Btn variant="danger" onClick={()=>act(()=>post(`/admin/users/${u.id}/subscription/cancel`,{}),'Subscription cancelled at period end.')}>Cancel subscription</Btn></div></div></Card>}
+      {!u.subscription && <p className="text-muted">No subscription yet — change the plan first.</p>}
+      <div className="flex gap-2 pt-2"><Btn variant="secondary" disabled={!u.subscription} onClick={()=>act(()=>post(`/admin/users/${u.id}/extend-period`,{days:30}),'Manual period extended by 30 days.')}>Extend 30 days</Btn>
+      <Btn variant="danger" disabled={!u.subscription} onClick={()=>act(()=>post(`/admin/users/${u.id}/cancel-subscription`,{}),'Subscription cancelled at period end.')}>Cancel subscription</Btn></div></div></Card>}
     {tab==='payments' && <Card className="mt-4"><CardHead title="Payment requests & payments" />
       <div className="divide-y divide-line">{(u.payment_requests||u.payments||[]).length ? (u.payment_requests||u.payments).map((p:any,i:number)=><div key={i} className="flex flex-wrap items-center gap-3 px-5 py-3 text-sm"><span className="font-semibold">{p.reference || p.id}</span><Badge tone={p.status==='approved'?'success':p.status==='pending'?'warn':'soft'}>{p.status}</Badge><span className="text-muted">{money(p.amount_cents)} · {p.provider_key}</span>
         {p.status==='pending' && <span className="ml-auto flex gap-2"><Btn variant="success" onClick={()=>act(()=>post(`/admin/payments/requests/${p.id}/approve`,{}),'Request approved — plan upgraded.')}>Approve</Btn><Btn variant="danger" onClick={()=>act(()=>post(`/admin/payments/requests/${p.id}/reject`,{reason:'Rejected by admin'}),'Request rejected.')}>Reject</Btn></span>}</div>) : <Empty title="No payments yet" sub="Payment requests and receipts for this user will appear here." />}</div></Card>}
     {tab==='jobs' && <Card className="mt-4"><CardHead title="Jobs" /><div className="divide-y divide-line">{(u.jobs||[]).length ? u.jobs.map((j:any,i:number)=><div key={i} className="flex justify-between px-5 py-3 text-sm"><span>{j.pair_slug}</span><Badge tone={j.status==='done'?'success':j.status==='failed'?'danger':'soft'}>{j.status}</Badge></div>) : <Empty title="No jobs yet" sub="This user's conversions will appear here." />}</div></Card>}
     {tab==='notes' && <Card className="mt-4"><CardHead title="Internal notes" sub="Only admins see these notes." /><div className="space-y-3 p-5">
-      {(u.notes||[]).map((n:any,i:number)=><p key={i} className="rounded-[12px] bg-soft p-3 text-sm">{n.body || n.text} <span className="text-muted">— {n.author || 'admin'}, {timeAgo(n.created_at)}</span></p>)}
+      {typeof u.notes === 'string' && u.notes.trim() ? u.notes.split('\n').filter((l:string)=>l.trim()).map((l:string,i:number)=><p key={i} className="rounded-[12px] bg-soft p-3 text-sm">{l}</p>) : <p className="text-sm text-muted">No notes yet.</p>}
       <Textarea label="Add a note" rows={3} value={note} onChange={(e:any)=>setNote(e.target.value)} />
-      <Btn onClick={()=>act(()=>post(`/admin/users/${u.id}/notes`,{body:note}),'Note saved.')} disabled={!note.trim()}>Save note</Btn></div></Card>}
+      <Btn onClick={saveNote} disabled={!note.trim()}>Save note</Btn></div></Card>}
     <Modal open={banOpen} onClose={()=>setBanOpen(false)} title="Ban user">
       <p className="mb-3 text-sm text-muted">A reason is mandatory. Banning revokes all sessions immediately.</p>
       <Textarea label="Ban reason (required)" rows={3} value={banReason} onChange={(e:any)=>setBanReason(e.target.value)} />
@@ -60,7 +64,7 @@ export default function UserDetail({ params }: { params: { id: string } }) {
       <div className="space-y-3"><Select label="New plan" value={newPlan} onChange={(e:any)=>setNewPlan(e.target.value)}><option value="free">Free</option><option value="basic">Basic</option><option value="pro">Pro</option></Select>
       <Input label="Complimentary days" type="number" min={0} value={compDays} onChange={(e:any)=>setCompDays(Number(e.target.value))} />
       <Textarea label="Reason (required)" rows={3} value={planReason} onChange={(e:any)=>setPlanReason(e.target.value)} />
-      <div className="flex justify-end gap-2"><Btn variant="secondary" onClick={()=>setPlanOpen(false)}>Cancel</Btn><Btn disabled={!planReason.trim()} onClick={async()=>{ await act(()=>post(`/admin/users/${u.id}/subscription/change-plan`,{plan:newPlan,reason:planReason,complimentary_days:compDays}),'Plan changed.'); setPlanOpen(false); }}>Change plan</Btn></div></div>
+      <div className="flex justify-end gap-2"><Btn variant="secondary" onClick={()=>setPlanOpen(false)}>Cancel</Btn><Btn disabled={!planReason.trim()} onClick={async()=>{ await act(()=>post(`/admin/users/${u.id}/change-plan`,{plan:newPlan,reason:planReason,complimentary_days:compDays}),'Plan changed.'); setPlanOpen(false); }}>Change plan</Btn></div></div>
     </Modal>
   </>;
 }
