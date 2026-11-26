@@ -19,12 +19,15 @@ ENV PORT=3001
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/.next ./.next
 # NOTE: no `COPY --from=build /app/public` here — the admin has no
-# public/ directory (no favicon, logo or other static assets; it
-# references none), and Docker fails the whole build with
+# public/ directory (no logo or other static assets; it references
+# none), and Docker fails the whole build with
 # "/app/public: not found" if the source path does not exist in the
-# build stage. The web Dockerfile keeps its public COPY because
-# web/public exists. If the admin ever gains static assets, add the
-# directory first, then add the COPY line back.
+# build stage. The favicon is an App Router file (app/favicon.ico),
+# which `npm run build` emits into .next, so it ships with the
+# `.next` COPY above and needs no public/ directory. The web
+# Dockerfile keeps its public COPY because web/public exists.
+# If the admin ever gains static assets, add the directory first,
+# then add the COPY line back.
 COPY package.json next.config.js ./
 EXPOSE 3001
 CMD ["npm", "start"]

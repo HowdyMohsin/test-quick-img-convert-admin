@@ -15,7 +15,7 @@ export default function Team() {
   const togglePerm = (p:string, list:string[], set:(v:string[])=>void) => set(list.includes(p) ? list.filter(x=>x!==p) : [...list, p]);
   const create = async (e:any) => { e.preventDefault(); try { const j:any = await post('/admin/team', form); setMsg(j.message || 'Admin created. Share the one-time password reset link with them.'); if (j.reset_link) setResetLink(j.reset_link); load(); } catch(er:any){ setErr(er); } };
   const savePerms = async () => { try { await patch(`/admin/team/${edit.id}`, { permissions: edit.permissions }); setMsg('Permissions saved.'); setEdit(null); load(); } catch(er:any){ setErr(er); } };
-  const resetPw = async (a:any) => { try { const j:any = await post(`/admin/team/${a.id}/reset-password`, {}); setResetLink(j.reset_link || j.reset_url || ''); setMsg('One-time password reset link created — it works once and expires. Share it directly with this admin.'); } catch(er:any){ setErr(er); } };
+  const resetPw = async (a:any) => { try { const j:any = await post(`/admin/team/${a.id}/reset-link`, {}); setResetLink(j.reset_link || j.reset_url || ''); setMsg('One-time password reset link created — it works once and expires. Share it directly with this admin.'); } catch(er:any){ setErr(er); } };
   return <Shell title="Team" breadcrumb="System / Team">
     {msg && <p className="mb-3 rounded-[12px] bg-green-50 p-3 text-sm font-medium text-green-800">{msg}</p>}
     {resetLink && <div className="mb-3"><p className="mb-1 text-sm font-semibold">One-time password reset link</p><CopyField value={resetLink} /></div>}

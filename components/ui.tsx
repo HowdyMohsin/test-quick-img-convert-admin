@@ -23,9 +23,12 @@ export function Badge({ children, tone = 'soft' }: any) {
   const tones: any = { soft: 'bg-soft text-ink', success: 'bg-green-100 text-green-800', warn: 'bg-amber-100 text-amber-800', danger: 'bg-red-100 text-red-800', primary: 'bg-indigo-100 text-primary', muted: 'bg-slate-100 text-muted' };
   return <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${tones[tone] || tones.soft}`}>{children}</span>;
 }
-export function Input({ label, ...props }: any) {
+export function Input({ label, action, ...props }: any) {
   return <label className="block text-sm font-medium text-ink">{label && <span className="mb-1 block">{label}</span>}
-    <input {...props} className="w-full rounded-[12px] border border-line bg-surface px-3 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary" /></label>;
+    <span className="relative block">
+      <input {...props} className={`w-full rounded-[12px] border border-line bg-surface px-3 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary ${action ? 'pr-16' : ''}`} />
+      {action && <span className="absolute right-2 top-1/2 -translate-y-1/2">{action}</span>}
+    </span></label>;
 }
 export function Select({ label, children, ...props }: any) {
   return <label className="block text-sm font-medium text-ink">{label && <span className="mb-1 block">{label}</span>}
@@ -50,9 +53,14 @@ export function Empty({ title, sub }: any) {
 }
 export function Err({ error, onRetry }: any) {
   if (!error) return null;
-  return <Card className="border-red-200 bg-red-50 p-4"><p className="font-semibold text-danger">{error.message || 'Something went wrong'}</p>
+  // Never show raw technical text (e.g. JSON parse errors) to an admin:
+  // the API client already maps those to a plain message, this is a safety net.
+  const raw = String(error.message || '');
+  const msg = /Unexpected token|is not valid JSON|Failed to fetch|NetworkError|Network request failed/i.test(raw)
+    ? 'Could not load data. Check the server connection and try again.'
+    : (raw || 'Something went wrong');
+  return <Card className="border-red-200 bg-red-50 p-4"><p className="font-semibold text-danger">{msg}</p>
     {error.hint && <p className="mt-1 text-sm text-red-700">{error.hint}</p>}
-    {error.code && <p className="mt-1 text-xs text-red-500">Code: {error.code}</p>}
     {onRetry && <div className="mt-3"><Btn variant="secondary" onClick={onRetry}>Retry</Btn></div>}</Card>;
 }
 export function Spinner() { return <div className="flex items-center gap-2 py-8 text-sm text-muted" role="status"><span className="h-5 w-5 animate-spin rounded-full border-2 border-line border-t-primary" />Loading…</div>; }

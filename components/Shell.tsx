@@ -13,36 +13,62 @@ export default function Shell({ children, title, breadcrumb }: { children: React
   const [collapsed, setCollapsed] = React.useState(false);
   const [drawer, setDrawer] = React.useState(false);
   const [me, setMe] = React.useState<any>(null);
+  const [auth, setAuth] = React.useState<'checking' | 'ok'>('checking');
   const [pending, setPending] = React.useState<number | null>(null);
   const [openGroups, setOpenGroups] = React.useState<Record<string, boolean>>({});
+  // Auth guard: the admin panel never renders as a signed-in user until
+  // /admin/auth/me succeeds. A 401 is redirected to /login by the API
+  // client; any other failure (e.g. backend unreachable) also routes to
+  // /login instead of showing a fake "Admin" dashboard.
   React.useEffect(() => {
     try { setCollapsed(localStorage.getItem('qic_admin_sidebar') === 'collapsed'); } catch {}
-    get('/admin/auth/me').then((j: any) => setMe(j.admin || j.me || j)).catch(() => {});
+    try { const saved = JSON.parse(localStorage.getItem('qic_admin_groups') || '{}'); if (saved && typeof saved === 'object') setOpenGroups(saved); } catch {}
+    get('/admin/auth/me')
+      .then((j: any) => { setMe(j.admin || j.me || j); setAuth('ok'); })
+      .catch(() => { router.replace('/login?next=' + encodeURIComponent(window.location.pathname)); });
+  }, [router]);
+  // Pending payment requests, only once we know the admin is signed in.
+  React.useEffect(() => {
+    if (auth !== 'ok') return;
     get('/admin/payments/requests?status=pending&limit=1').then((j: any) => {
       const total = j.total ?? j.count ?? (Array.isArray(j.items || j.requests) ? (j.items || j.requests).length : null);
       setPending(typeof total === 'number' ? total : null);
     }).catch(() => setPending(null));
-  }, []);
+  }, [auth]);
   const admin = me || {};
   const perms = admin.permissions ?? admin.perms;
   const groups = filterNav(perms, admin.role);
   const isActive = (href?: string) => !!href && (pathname === href || (href !== '/' && pathname.startsWith(href)));
-  const toggleGroup = (id: string) => setOpenGroups(s => ({ ...s, [id]: !(s[id] ?? true) }));
+  // Keep the group of the current page open so the active item stays visible.
+  React.useEffect(() => {
+    const activeId = groups.flatMap(g => g.items).find(it => it.children?.some(c => isActive(c.href)))?.id;
+    if (activeId) setOpenGroups(s => (s[activeId] ? s : { ...s, [activeId]: true }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+  const toggleGroup = (id: string) => setOpenGroups(s => {
+    const next = { ...s, [id]: !(s[id] ?? false) };
+    try { localStorage.setItem('qic_admin_groups', JSON.stringify(next)); } catch {}
+    return next;
+  });
+  const toggleCollapsed = () => {
+    const v = !collapsed; setCollapsed(v);
+    try { localStorage.setItem('qic_admin_sidebar', v ? 'collapsed' : 'expanded'); } catch {}
+  };
   const signOut = async () => { try { await api('/admin/auth/logout', { method: 'POST' }); } catch {} router.push('/login'); };
   const sidebar = (mobile: boolean) => (
-    <div className="flex h-full w-[264px] flex-col bg-ink text-white" role="navigation" aria-label="Admin sections">
+    <div className={`flex h-full flex-col overflow-hidden bg-ink text-white ${collapsed && !mobile ? 'w-[72px]' : 'w-[264px]'}`} role="navigation" aria-label="Admin sections">
       <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-primary text-lg font-extrabold" aria-hidden>⚡</span>
         {!collapsed && !mobile && <div className="min-w-0"><p className="truncate text-sm font-bold leading-tight">{BRAND.name}</p><p className="text-xs text-slate-400">Admin</p></div>}
         {mobile && <div className="min-w-0"><p className="truncate text-sm font-bold leading-tight">{BRAND.name}</p><p className="text-xs text-slate-400">Admin</p></div>}
       </div>
-      <nav className="flex-1 overflow-y-auto px-2 py-3">
+      <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
         {groups.map(g => (
           <div key={g.label} className="mb-4">
             {(!collapsed || mobile) && <p className="px-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">{g.label}</p>}
             {g.items.map(it => {
               if (it.children) {
-                const open = openGroups[it.id] ?? true;
+                const open = openGroups[it.id] ?? false;
                 const activeChild = it.children.some(c => isActive(c.href));
                 return <div key={it.id}>
                   <button onClick={() => toggleGroup(it.id)} aria-expanded={open} title={collapsed && !mobile ? it.label : undefined}
@@ -71,9 +97,9 @@ export default function Shell({ children, title, breadcrumb }: { children: React
           </div>
         ))}
       </nav>
-      <div className="border-t border-white/10 p-3">
+      <div className="shrink-0 border-t border-white/10 p-3">
         <div className="flex items-center gap-3 rounded-[12px] px-2 py-2">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold">{initials(admin.display_name || admin.name, admin.email)}</span>
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold" title={admin.display_name || admin.name || admin.email || 'Admin'}>{initials(admin.display_name || admin.name || admin.email || 'Admin', admin.email)}</span>
           {(!collapsed || mobile) && <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{admin.display_name || admin.name || admin.email || 'Admin'}</p><p className="truncate text-xs text-slate-400">{admin.role || 'admin'}</p></div>}
           {(!collapsed || mobile) && <button onClick={signOut} className="rounded-[8px] px-2 py-1 text-xs font-semibold text-slate-300 hover:bg-white/10" title="Sign out">Sign out</button>}
         </div>
@@ -81,17 +107,23 @@ export default function Shell({ children, title, breadcrumb }: { children: React
       </div>
     </div>
   );
+  if (auth === 'checking') {
+    return <div className="flex min-h-screen items-center justify-center bg-soft text-sm text-muted" role="status">Loading…</div>;
+  }
   return (
     <div className="flex min-h-screen bg-soft text-ink">
-      <aside className={`fixed inset-y-0 left-0 z-40 hidden transition-all lg:block ${collapsed ? 'w-[72px]' : 'w-[264px]'}`} aria-label="Sidebar">{sidebar(false)}</aside>
+      <aside className={`fixed inset-y-0 left-0 z-40 hidden transition-all lg:block ${collapsed ? 'w-[72px]' : 'w-[264px]'}`} aria-label="Sidebar">
+        {sidebar(false)}
+        <button className="absolute -right-0 top-[68px] z-50 hidden h-7 w-7 translate-x-1/2 items-center justify-center rounded-full border border-line bg-surface text-sm font-bold text-ink shadow-md hover:bg-soft lg:flex"
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} onClick={toggleCollapsed}>{collapsed ? '»' : '«'}</button>
+      </aside>
       {drawer && <div className="fixed inset-0 z-50 lg:hidden"><div className="absolute inset-0 bg-black/50" onClick={() => setDrawer(false)} /> <aside className="absolute inset-y-0 left-0">{sidebar(true)}</aside></div>}
       <div className={`flex min-w-0 flex-1 flex-col ${collapsed ? 'lg:pl-[72px]' : 'lg:pl-[264px]'}`}>
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-surface px-4">
           <button className="rounded-[10px] px-3 py-2 text-lg hover:bg-soft lg:hidden" aria-label="Open menu" onClick={() => setDrawer(true)}>☰</button>
-          <button className="hidden rounded-[10px] px-3 py-2 text-lg hover:bg-soft lg:block" aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} onClick={() => { const v = !collapsed; setCollapsed(v); try { localStorage.setItem('qic_admin_sidebar', v ? 'collapsed' : 'expanded'); } catch {} }}>{collapsed ? '»' : '«'}</button>
           <div className="min-w-0 flex-1"><h1 className="truncate text-base font-bold">{title}</h1>{breadcrumb && <p className="truncate text-xs text-muted">{breadcrumb}</p>}</div>
-          <Link href="/payments/requests" className="flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-semibold hover:bg-soft">
-            Pending approvals {pending !== null && pending > 0 ? <span className="rounded-full bg-danger px-2 py-0.5 text-xs font-bold text-white">{pending}</span> : <span className="rounded-full bg-soft px-2 py-0.5 text-xs text-muted">{pending ?? 0}</span>}
+          <Link href="/payments/requests" title="Payment requests awaiting approval" className="flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-semibold hover:bg-soft">
+            Pending payment approvals {pending !== null && pending > 0 ? <span className="rounded-full bg-danger px-2 py-0.5 text-xs font-bold text-white">{pending}</span> : <span className="rounded-full bg-soft px-2 py-0.5 text-xs text-muted">{pending ?? 0}</span>}
           </Link>
         </header>
         <main className="mx-auto w-full max-w-6xl flex-1 p-4 sm:p-6">{children}</main>

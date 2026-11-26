@@ -8,7 +8,7 @@ export const NAV: NavGroup[] = [
       { id: 'requests', label: 'Requests', href: '/payments/requests', icon: '✉', perm: 'payments', badge: 'pending' },
       { id: 'subscriptions', label: 'Subscriptions', href: '/payments/subscriptions', icon: '↻', perm: 'payments' },
       { id: 'providers', label: 'Providers', href: '/payments/providers', icon: '⬡', perm: 'payments' },
-      { id: 'webhooks', label: 'Webhook log', href: '/payments/webhooks', icon: '⌁', perm: 'payments' },
+      { id: 'webhooks', label: 'Webhook Log', href: '/payments/webhooks', icon: '⌁', perm: 'payments' },
     ]},
   ]},
   { label: 'Catalog', items: [

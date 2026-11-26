@@ -7,7 +7,7 @@ import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
 
 export default function Dashboard() {
   const [d, setD] = React.useState<any>(null); const [err, setErr] = React.useState<any>(null); const [loading, setLoading] = React.useState(true);
-  const load = () => { setLoading(true); get('/admin/dashboard').then(setD).catch(setErr).finally(() => setLoading(false)); };
+  const load = () => { setLoading(true); setErr(null); get('/admin/dashboard').then(setD).catch(setErr).finally(() => setLoading(false)); };
   React.useEffect(load, []);
   const k = d?.kpis || d || {};
   const series = (d?.series_30d || d?.charts?.conversions_30d || []).map((x: any) => ({ label: x.date || x.label, value: x.conversions ?? x.value ?? 0 }));
@@ -22,8 +22,8 @@ export default function Dashboard() {
       <Stat label="Conversions today" value={fmt(k.conversions_today ?? k.conversionsToday)} />
       <Stat label="Success rate" value={pct(k.success_rate ?? k.successRate)} />
       <Stat label="Active subscriptions" value={fmt(k.active_subscriptions ?? k.activeSubscriptions)} />
-      <Stat label="MRR" value={money(k.mrr_cents ?? k.mrrCents)} />
-      <Stat label="Pending approvals" value={fmt(k.pending_approvals ?? k.pendingApprovals)} tone="danger" sub="Awaiting a decision" />
+      <Stat label="MRR" value={money(k.mrr_cents ?? k.mrrCents)} sub="Monthly recurring revenue" />
+      <Stat label="Pending approvals" value={fmt(k.pending_approvals ?? k.pendingApprovals)} tone="danger" sub="Payment requests awaiting approval" />
     </div>
     <div className="mt-4 grid gap-4 lg:grid-cols-2">
       <Card><CardHead title="Conversions — last 30 days" sub="Successful and failed conversions per day" />

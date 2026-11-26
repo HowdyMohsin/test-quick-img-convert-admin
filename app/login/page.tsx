@@ -14,6 +14,9 @@ function LoginForm() {
   const [newPw, setNewPw] = React.useState(''); const [confirmPw, setConfirmPw] = React.useState('');
   const [err, setErr] = React.useState(''); const [lockout, setLockout] = React.useState(0);
   const [busy, setBusy] = React.useState(false);
+  const [showPw, setShowPw] = React.useState(false);
+  // Link back to the public site (configured via NEXT_PUBLIC_SITE_URL).
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
   React.useEffect(() => { getCsrf().catch(() => {}); }, []);
   React.useEffect(() => { if (lockout <= 0) return; const t = setInterval(() => setLockout(s => Math.max(0, s - 1)), 1000); return () => clearInterval(t); }, [lockout]);
   const submit = async (e: React.FormEvent) => {
@@ -53,16 +56,18 @@ function LoginForm() {
           </form>
         ) : (
           <form onSubmit={submit} className="space-y-4">
-            <Input label="Email" type="email" autoComplete="username" value={email} onChange={(e: any) => setEmail(e.target.value)} required autoFocus />
-            <Input label="Password" type="password" autoComplete="current-password" value={password} onChange={(e: any) => setPassword(e.target.value)} required />
+            <Input label="Email" type="email" autoComplete="username" value={email} onChange={(e: any) => setEmail(e.target.value)} required autoFocus placeholder="admin@example.com" />
+            <Input label="Password" type={showPw ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={(e: any) => setPassword(e.target.value)} required placeholder="Your password"
+              action={<button type="button" onClick={() => setShowPw(v => !v)} aria-label={showPw ? 'Hide password' : 'Show password'} className="rounded px-1 text-xs font-semibold text-primary hover:underline">{showPw ? 'Hide' : 'Show'}</button>} />
             {needTotp && <Input label="Authenticator code" inputMode="numeric" autoComplete="one-time-code" value={totp} onChange={(e: any) => setTotp(e.target.value)} required placeholder="6-digit code" />}
             {lockout > 0 && <p role="alert" className="rounded-[12px] bg-red-50 p-3 text-sm font-medium text-danger">Too many attempts. Try again in {Math.floor(lockout / 60)}:{String(lockout % 60).padStart(2, '0')}.</p>}
             {err && !lockout && <p role="alert" className="text-sm font-medium text-danger">{err}</p>}
             <Btn type="submit" disabled={busy || lockout > 0} className="w-full">{busy ? 'Signing in…' : 'Sign in'}</Btn>
-            <p className="text-center text-xs text-muted">No default credentials exist. The first admin is created by the server CLI only.</p>
+            <p className="text-center text-xs text-muted">No default credentials exist. Ask your server administrator to create the first admin account.</p>
           </form>
         )}
       </Card>
+      {siteUrl && <p className="mt-4 text-center text-sm"><a className="font-semibold text-primary hover:underline" href={siteUrl}>← Back to Quick IMG Convert</a></p>}
     </div>
   </main>;
 }

@@ -12,9 +12,11 @@ export class ApiException extends Error {
 let csrfToken: string | null = null;
 export async function getCsrf(): Promise<string> {
   if (csrfToken) return csrfToken;
-  const r = await fetch('/api/admin/auth/csrf', { credentials: 'include' });
-  const j = await r.json().catch(() => ({}));
-  csrfToken = j.csrf_token || j.csrfToken || '';
+  try {
+    const r = await fetch('/api/admin/auth/csrf', { credentials: 'include' });
+    const j = await r.json().catch(() => ({}));
+    csrfToken = j.csrf_token || j.csrfToken || '';
+  } catch { csrfToken = ''; }
   return csrfToken || '';
 }
 export async function api<T = any>(path: string, opts: { method?: string; headers?: Record<string, string>; body?: any } = {}): Promise<T> {
@@ -23,10 +25,26 @@ export async function api<T = any>(path: string, opts: { method?: string; header
   let body = opts.body;
   if (body && typeof body === 'object' && !(body instanceof FormData)) { headers['Content-Type'] = 'application/json'; body = JSON.stringify(body); }
   if (method !== 'GET' && method !== 'HEAD') headers['X-CSRF-Token'] = await getCsrf();
-  const r = await fetch(`/api${path}`, { ...opts, method, headers, body, credentials: 'include' });
+  let r: Response;
+  try {
+    r = await fetch(`/api${path}`, { ...opts, method, headers, body, credentials: 'include' });
+  } catch (e) {
+    // Server unreachable (backend down, rewrite target refusing, offline).
+    // Never surface the raw network error to the UI.
+    console.error('API request failed', path, e);
+    throw new ApiException(0, { code: 'network_error', message: 'Could not load data. Check the server connection and try again.' });
+  }
   if (r.status === 401) { csrfToken = null; if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) window.location.href = '/login'; throw new ApiException(401, { code: 'unauthorized', message: 'Your session has expired. Please sign in again.' }); }
   const text = await r.text();
-  const j = text ? JSON.parse(text) : {};
+  let j: any = {};
+  try {
+    j = text ? JSON.parse(text) : {};
+  } catch (e) {
+    // Non-JSON body (e.g. a proxy/404 HTML page when the backend is down).
+    // The technical detail stays in the console; the UI gets a plain message.
+    console.error('API returned a non-JSON response', r.status, path, text.slice(0, 200));
+    throw new ApiException(r.status, { code: `http_${r.status}`, message: 'Could not load data. Check the server connection and try again.' });
+  }
   if (!r.ok) {
     const e: ApiError = j.error || { code: `http_${r.status}`, message: j.message || `Request failed (${r.status})` };
     throw new ApiException(r.status, e);
