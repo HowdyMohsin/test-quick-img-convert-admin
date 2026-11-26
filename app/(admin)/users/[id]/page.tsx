@@ -10,7 +10,7 @@ export default function UserDetail({ params }: { params: { id: string } }) {
   const [tab, setTab] = React.useState('overview'); const [banOpen, setBanOpen] = React.useState(false); const [banReason, setBanReason] = React.useState('');
   const [planOpen, setPlanOpen] = React.useState(false); const [newPlan, setNewPlan] = React.useState('basic'); const [planReason, setPlanReason] = React.useState(''); const [compDays, setCompDays] = React.useState(0);
   const [note, setNote] = React.useState(''); const [msg, setMsg] = React.useState('');
-  const load = () => { setLoading(true); get(`/admin/users/${params.id}`).then((j:any)=>setU(j.user||j)).catch(setErr).finally(()=>setLoading(false)); };
+  const load = () => { setLoading(true); get(`/admin/users/${params.id}`).then((j:any)=>setU(j.user ? {...j.user, usage: j.usage, subscription: j.subscription, payment_requests: j.payment_requests, payments: j.payments, jobs: j.jobs, sessions: j.sessions, notes: j.notes} : j)).catch(setErr).finally(()=>setLoading(false)); };
   React.useEffect(load, []);
   const { setPageTitle } = React.useContext(PageTitleContext);
   const lastTitle = React.useRef('');
@@ -29,7 +29,7 @@ export default function UserDetail({ params }: { params: { id: string } }) {
     {msg && <p className="mb-3 rounded-[12px] bg-green-50 p-3 text-sm font-medium text-green-800">{msg}</p>}
     {err && <div className="mb-3"><Err error={err} /></div>}
     <div className="flex flex-wrap items-start justify-between gap-3">
-      <div><p className="text-lg font-bold">{u.display_name || '—'}</p><p className="text-muted">{u.email} {u.email_verified_at ? <Badge tone="success">Verified</Badge> : <Badge tone="warn">Unverified</Badge>}</p>
+      <div><p className="text-lg font-bold">{u.display_name || '—'}</p><p className="text-muted">{u.email} {(u.email_verified_at || u.email_verified) ? <Badge tone="success">Verified</Badge> : <Badge tone="warn">Unverified</Badge>}</p>
       <p className="mt-1 text-sm text-muted">Member since {fmtDate(u.created_at)} · Last seen {timeAgo(u.last_seen_at || u.last_login_at)}</p></div>
       <div className="flex gap-2">{u.banned ? <Btn variant="success" onClick={()=>act(()=>post(`/admin/users/${u.id}/unban`,{}),'User unbanned.')}>Unban</Btn> : <Btn variant="danger" onClick={()=>setBanOpen(true)}>Ban user</Btn>}
       <Btn variant="secondary" onClick={()=>act(()=>post(`/admin/users/${u.id}/force-signout`,{}),'All sessions signed out.')}>Force sign-out</Btn></div></div>
