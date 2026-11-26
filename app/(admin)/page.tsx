@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import Link from 'next/link';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
@@ -37,11 +38,11 @@ export default function Dashboard() {
       <Card><CardHead title="Recent errors" sub="Latest engine and conversion errors" />
         <div className="divide-y divide-line">{errors.length ? errors.slice(0,8).map((e:any,i:number)=><div key={i} className="px-5 py-3 text-sm"><span className="font-semibold">{e.error_code || e.code || 'error'}</span> <span className="text-muted">{e.message || e.pair_slug || ''} · {timeAgo(e.ts || e.created_at)}</span></div>) : <Empty title="No recent errors" sub="Errors from the conversion pipeline will appear here." />}</div></Card>
       <Card><CardHead title="Quick links" /><div className="flex flex-wrap gap-2 p-5">
-        <a className="rounded-[12px] bg-primary px-4 py-2.5 text-sm font-semibold text-white" href="/payments/requests">Review payment requests</a>
-        <a className="rounded-[12px] bg-soft px-4 py-2.5 text-sm font-semibold" href="/users">Users</a>
-        <a className="rounded-[12px] bg-soft px-4 py-2.5 text-sm font-semibold" href="/formats">Formats</a>
-        <a className="rounded-[12px] bg-soft px-4 py-2.5 text-sm font-semibold" href="/jobs">Jobs</a>
-        <a className="rounded-[12px] bg-soft px-4 py-2.5 text-sm font-semibold" href="/reports">Reports</a>
+        <Link className="rounded-[12px] bg-primary px-4 py-2.5 text-sm font-semibold text-white" href="/payments/requests">Review payment requests</Link>
+        <Link className="rounded-[12px] bg-soft px-4 py-2.5 text-sm font-semibold" href="/users">Users</Link>
+        <Link className="rounded-[12px] bg-soft px-4 py-2.5 text-sm font-semibold" href="/formats">Formats</Link>
+        <Link className="rounded-[12px] bg-soft px-4 py-2.5 text-sm font-semibold" href="/jobs">Jobs</Link>
+        <Link className="rounded-[12px] bg-soft px-4 py-2.5 text-sm font-semibold" href="/reports">Reports</Link>
       </div></Card>
     </div></>}
   </>;

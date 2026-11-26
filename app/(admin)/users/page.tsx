@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import Link from 'next/link';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
@@ -23,7 +24,7 @@ export default function Users() {
     <tbody>{rows.map((u:any)=><tr key={u.id} className="border-b border-line hover:bg-soft/60"><td className="px-5 py-3"><p className="font-semibold">{u.display_name || u.name || '—'}</p><p className="text-muted">{u.email}</p></td>
       <td className="px-3 py-3"><Badge tone="primary">{u.plan || 'free'}</Badge></td><td className="px-3 py-3">{fmt(u.usage_today?.used ?? u.used_today)} / {fmt(u.usage_today?.limit ?? u.daily_limit)}</td>
       <td className="px-3 py-3">{u.banned ? <Badge tone="danger">Banned</Badge> : <Badge tone="success">Active</Badge>}</td><td className="px-3 py-3 text-muted">{timeAgo(u.created_at)}</td>
-      <td className="px-3 py-3 text-right"><a className="font-semibold text-primary" href={`/users/${u.id}`}>Open →</a></td></tr>)}</tbody></table></div>}
+      <td className="px-3 py-3 text-right"><Link className="font-semibold text-primary" href={`/users/${u.id}`}>Open →</Link></td></tr>)}</tbody></table></div>}
     <div className="flex items-center justify-between px-5 py-3 text-sm text-muted"><span>{!loading && !err ? `${fmt(total)} users` : ''}</span><div className="flex gap-2"><Btn variant="secondary" disabled={loading || !!err || page<=1} onClick={()=>setPage(page-1)}>Previous</Btn><Btn variant="secondary" disabled={loading || !!err || rows.length===0} onClick={()=>setPage(page+1)}>Next</Btn></div></div></Card>
   </>;
 }

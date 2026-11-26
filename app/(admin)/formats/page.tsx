@@ -25,7 +25,16 @@ export default function Formats() {
   const runCheck = async () => { setChecking(true); setProgress(0); try { await post('/admin/formats/health-check', {}); const t = setInterval(()=>setProgress(p=>{ if (p>=100){ clearInterval(t); setChecking(false); load(); } return Math.min(100, p+10); }), 200); } catch(e:any){ setErr(e); setChecking(false); } };
   // The backend pair-override route is PATCH /admin/formats/pairs/{slug}
   // with { visible }; it hides the pair from the public dropdowns.
-  const toggle = async (r:any) => { try { await patch(`/admin/formats/pairs/${r.pair_slug}`, { visible: r.visible === false }); load(); } catch(e:any){ setErr(e); } };
+  // Optimistic in-place update: flip just this row and revert on error.
+  // The old code refetched all 238 rows with a full "Loading…" state,
+  // which replaced the table and jumped the scroll to the bottom.
+  const toggle = async (r:any) => {
+    const nextVisible = r.visible === false; // hidden → show, otherwise hide
+    const prevVisible = r.visible;
+    setRows(rows => rows.map(x => x.pair_slug === r.pair_slug ? { ...x, visible: nextVisible } : x));
+    try { await patch(`/admin/formats/pairs/${r.pair_slug}`, { visible: nextVisible }); }
+    catch(e:any){ setRows(rows => rows.map(x => x.pair_slug === r.pair_slug ? { ...x, visible: prevVisible } : x)); setErr(e); }
+  };
   const filtered = rows.filter((r:any)=>{ const s = `${r.pair_slug||''} ${r.from_slug||''} ${r.to_slug||''}`.toLowerCase(); return (!q || s.includes(q.toLowerCase())) && (!filter || r.status===filter); });
   return <>
     {msg && <p className="mb-3 rounded-[12px] bg-green-50 p-3 text-sm font-medium text-green-800">{msg}</p>}

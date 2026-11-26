@@ -60,8 +60,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     });
   }, []);
   const pageTitleValue = React.useMemo(() => ({ setPageTitle }), [setPageTitle]);
-  // A page's dynamic title never survives navigation.
-  React.useEffect(() => { setTitleOverride(null); }, [pathname]);
+  // A page's dynamic title never survives navigation, and the mobile
+  // drawer must close on navigation — otherwise it stays open over the
+  // dimmed content and blocks clicks until the page is reloaded.
+  React.useEffect(() => { setTitleOverride(null); setDrawer(false); }, [pathname]);
   // Auth guard: the admin panel never renders as a signed-in user until
   // /admin/auth/me succeeds. A 401 is redirected to /login by the API
   // client; any other failure (e.g. backend unreachable) also routes to
