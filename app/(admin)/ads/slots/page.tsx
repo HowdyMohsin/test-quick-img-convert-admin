@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import Shell from '@/components/Shell';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
@@ -15,7 +14,7 @@ export default function Slots() {
   React.useEffect(load, []);
   const create = async (e:any) => { e.preventDefault(); try { await post('/admin/ads/slots', form); setMsg('Slot created.'); setForm({ key:'', label:'', placement:'home_top', size:'728x90', device:'all', freq_cap:3, network:'adsense', unit_id:'', code:'' }); load(); } catch(er:any){ setErr(er); } };
   const move = async (s:any, dir:number) => { try { await post(`/admin/ads/slots/${s.key}/reorder`, { direction: dir }); load(); } catch(er:any){ setErr(er); } };
-  return <Shell title="Ad slots" breadcrumb="Monetization / Ads / Slots">
+  return <>
     {msg && <p className="mb-3 rounded-[12px] bg-green-50 p-3 text-sm font-medium text-green-800">{msg}</p>}
     {err && <div className="mb-3"><Err error={err} onRetry={load} /></div>}
     <div className="grid gap-4 lg:grid-cols-2">
@@ -43,5 +42,5 @@ export default function Slots() {
       <p className="mb-2 text-sm text-muted">Sandboxed preview; scripts in custom HTML cannot reach the admin.</p>
       <iframe title="Ad preview" sandbox="allow-scripts" className="h-40 w-full rounded-[12px] border border-line bg-soft" srcDoc={preview?.code || `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-family:sans-serif;color:#64748B">Ad unit ${preview?.unit_id || preview?.key} · ${preview?.size}</div>`} />
     </Modal>
-  </Shell>;
+  </>;
 }

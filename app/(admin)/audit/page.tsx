@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import Shell from '@/components/Shell';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
@@ -12,7 +11,7 @@ export default function Audit() {
   const load = React.useCallback(() => { setLoading(true); const p = new URLSearchParams({ ...(admin?{admin}:{}), ...(action?{action}:{}) }); get(`/admin/audit?${p}`).then((j:any)=>setRows(j.items||j.entries||[])).catch(setErr).finally(()=>setLoading(false)); }, [admin, action]);
   React.useEffect(load, [load]);
   const exportCsv = () => downloadCsv('quick-img-convert-audit.csv', [['time','admin','action','target'], ...rows.map((r:any)=>[r.ts||r.created_at, r.admin_email, r.action, r.target])]);
-  return <Shell title="Audit Log" breadcrumb="System / Audit Log">
+  return <>
     <Card><div className="flex flex-wrap items-end gap-3 p-4">
       <Input label="Admin email" value={admin} onChange={(e:any)=>setAdmin(e.target.value)} placeholder="Filter by admin…" />
       <Input label="Action" value={action} onChange={(e:any)=>setAction(e.target.value)} placeholder="e.g. plan.update" />
@@ -27,5 +26,5 @@ export default function Audit() {
         <div><p className="mb-1 text-sm font-semibold">After</p><pre className="max-h-72 overflow-auto rounded-[12px] bg-soft p-3 text-xs">{JSON.stringify(sel?.after ?? {}, null, 2)}</pre></div>
       </div>
     </Modal>
-  </Shell>;
+  </>;
 }

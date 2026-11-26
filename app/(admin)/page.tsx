@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import Shell from '@/components/Shell';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
@@ -14,7 +13,7 @@ export default function Dashboard() {
   const top = d?.top_pairs || d?.topPairs || [];
   const errors = d?.recent_errors || d?.recentErrors || [];
   const disabled = d?.disabled_pairs || d?.disabledPairs || [];
-  return <Shell title="Dashboard" breadcrumb="Overview / Dashboard">
+  return <>
     {err && <Err error={err} onRetry={load} />}
     {loading && !d ? <Spinner /> : <>
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
@@ -43,5 +42,5 @@ export default function Dashboard() {
         <a className="rounded-[12px] bg-soft px-4 py-2.5 text-sm font-semibold" href="/reports">Reports</a>
       </div></Card>
     </div></>}
-  </Shell>;
+  </>;
 }

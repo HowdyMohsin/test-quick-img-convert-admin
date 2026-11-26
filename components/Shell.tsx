@@ -4,11 +4,40 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ChevronDown, ChevronRight, ChevronsLeft, ChevronsRight, Menu } from 'lucide-react';
 import { BRAND } from '@/lib/brand';
-import { filterNav } from '@/lib/nav';
+import { filterNav, type NavGroup } from '@/lib/nav';
 import { api, get } from '@/lib/api';
 import { initials } from '@/lib/utils';
 
-export default function Shell({ children, title, breadcrumb }: { children: React.ReactNode; title: string; breadcrumb?: string }) {
+// Page titles are derived from the nav structure so the Shell mounts once
+// in the shared (admin) layout and navigation never re-runs the auth
+// check or flashes a full-screen loader. A few pages use a title that
+// differs from their nav label — those are overridden here.
+const TITLE_OVERRIDES: Record<string, string> = {
+  '/payments/requests': 'Payment requests',
+  '/payments/providers': 'Payment providers',
+  '/payments/webhooks': 'Webhook log',
+  '/ads/slots': 'Ad slots',
+  '/settings/general': 'General settings',
+};
+
+function deriveTitle(pathname: string, groups: NavGroup[]): { title: string; breadcrumb: string } {
+  if (pathname.startsWith('/users/')) return { title: 'User', breadcrumb: 'Customers / Users / Detail' };
+  for (const g of groups) {
+    for (const it of g.items) {
+      if (it.href === pathname) return { title: TITLE_OVERRIDES[pathname] ?? it.label, breadcrumb: `${g.label} / ${it.label}` };
+      if (it.children) for (const c of it.children) {
+        if (c.href === pathname) return { title: TITLE_OVERRIDES[pathname] ?? c.label, breadcrumb: `${g.label} / ${it.label} / ${c.label}` };
+      }
+    }
+  }
+  return { title: 'Admin', breadcrumb: '' };
+}
+
+// Lets a page set a dynamic header title (e.g. the user detail page
+// shows the user's name). Cleared automatically on navigation.
+export const PageTitleContext = React.createContext<{ setPageTitle: (title: string, breadcrumb?: string) => void }>({ setPageTitle: () => {} });
+
+export default function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = React.useState(false);
@@ -17,6 +46,9 @@ export default function Shell({ children, title, breadcrumb }: { children: React
   const [auth, setAuth] = React.useState<'checking' | 'ok'>('checking');
   const [pending, setPending] = React.useState<number | null>(null);
   const [openGroups, setOpenGroups] = React.useState<Record<string, boolean>>({});
+  const [titleOverride, setTitleOverride] = React.useState<{ title: string; breadcrumb?: string } | null>(null);
+  // A page's dynamic title never survives navigation.
+  React.useEffect(() => { setTitleOverride(null); }, [pathname]);
   // Auth guard: the admin panel never renders as a signed-in user until
   // /admin/auth/me succeeds. A 401 is redirected to /login by the API
   // client; any other failure (e.g. backend unreachable) also routes to
@@ -39,6 +71,9 @@ export default function Shell({ children, title, breadcrumb }: { children: React
   const admin = me || {};
   const perms = admin.permissions ?? admin.perms;
   const groups = filterNav(perms, admin.role);
+  const derived = deriveTitle(pathname, groups);
+  const title = titleOverride?.title ?? derived.title;
+  const breadcrumb = titleOverride?.breadcrumb ?? derived.breadcrumb;
   const isActive = (href?: string) => !!href && (pathname === href || (href !== '/' && pathname.startsWith(href)));
   // Keep the group of the current page open so the active item stays visible.
   React.useEffect(() => {
@@ -112,9 +147,16 @@ export default function Shell({ children, title, breadcrumb }: { children: React
     </div>
   );
   if (auth === 'checking') {
-    return <div className="flex min-h-screen items-center justify-center bg-soft text-sm text-muted" role="status">Loading…</div>;
+    // First load only — the Shell mounts once in the shared layout, so
+    // navigation never shows this. Brand mark + spinner, not a blank page.
+    return <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-soft" role="status">
+      <span className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-primary text-2xl font-extrabold text-white" aria-hidden>Q</span>
+      <span className="h-6 w-6 animate-spin rounded-full border-2 border-line border-t-primary" aria-hidden />
+      <p className="text-sm text-muted">Loading admin…</p>
+    </div>;
   }
   return (
+    <PageTitleContext.Provider value={{ setPageTitle: (t, b) => setTitleOverride({ title: t, breadcrumb: b }) }}>
     <div className="flex min-h-screen bg-soft text-ink">
       <aside className={`fixed inset-y-0 left-0 z-40 hidden transition-all lg:block ${collapsed ? 'w-[72px]' : 'w-[264px]'}`} aria-label="Sidebar">
         {sidebar(false)}
@@ -133,5 +175,6 @@ export default function Shell({ children, title, breadcrumb }: { children: React
         <main className="mx-auto w-full max-w-6xl flex-1 p-4 sm:p-6">{children}</main>
       </div>
     </div>
+    </PageTitleContext.Provider>
   );
 }

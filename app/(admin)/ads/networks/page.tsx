@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import Shell from '@/components/Shell';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
@@ -11,7 +10,7 @@ export default function Networks() {
   const load = () => { setLoading(true); get('/admin/ads/networks').then((j:any)=>{ const d=j.settings||j; setS(d); setAdsTxt(d.ads_txt||''); setConsent(d.consent||{enabled:true,banner:true}); }).catch(setErr).finally(()=>setLoading(false)); };
   React.useEffect(load, []);
   const save = async () => { try { await patch('/admin/ads/networks', { ...s, ads_txt: adsTxt, consent }); setMsg('Ad network settings saved.'); } catch(e:any){ setErr(e); } };
-  return <Shell title="Networks and ads.txt" breadcrumb="Monetization / Ads / Networks and ads.txt">
+  return <>
     {msg && <p className="mb-3 rounded-[12px] bg-green-50 p-3 text-sm font-medium text-green-800">{msg}</p>}
     {err && <div className="mb-3"><Err error={err} onRetry={load} /></div>}
     {loading ? <Spinner /> : <div className="grid gap-4 lg:grid-cols-2">
@@ -34,5 +33,5 @@ export default function Networks() {
           <li>Frequency caps apply per session, per slot.</li>
         </ul></Card>
     </div>}
-  </Shell>;
+  </>;
 }

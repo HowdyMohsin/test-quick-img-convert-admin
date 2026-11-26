@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import Shell from '@/components/Shell';
+import { PageTitleContext } from '@/components/Shell';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
@@ -12,11 +12,13 @@ export default function UserDetail({ params }: { params: { id: string } }) {
   const [note, setNote] = React.useState(''); const [msg, setMsg] = React.useState('');
   const load = () => { setLoading(true); get(`/admin/users/${params.id}`).then((j:any)=>setU(j.user||j)).catch(setErr).finally(()=>setLoading(false)); };
   React.useEffect(load, []);
+  const { setPageTitle } = React.useContext(PageTitleContext);
+  React.useEffect(() => { if (u) setPageTitle(u.display_name || u.email || 'User', 'Customers / Users / Detail'); }, [u, setPageTitle]);
   const act = async (fn: () => Promise<any>, ok: string) => { try { await fn(); setMsg(ok); load(); } catch (e:any) { setErr(e); } };
-  if (loading && !u) return <Shell title="User" breadcrumb="Customers / Users"><Spinner /></Shell>;
-  if (err && !u) return <Shell title="User" breadcrumb="Customers / Users"><Err error={err} onRetry={load} /></Shell>;
+  if (loading && !u) return <Spinner />;
+  if (err && !u) return <Err error={err} onRetry={load} />;
   const sub = u.subscription || {}; const usage = u.usage || {};
-  return <Shell title={u.display_name || u.email || 'User'} breadcrumb="Customers / Users / Detail">
+  return <>
     {msg && <p className="mb-3 rounded-[12px] bg-green-50 p-3 text-sm font-medium text-green-800">{msg}</p>}
     {err && <div className="mb-3"><Err error={err} /></div>}
     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -53,5 +55,5 @@ export default function UserDetail({ params }: { params: { id: string } }) {
       <Textarea label="Reason (required)" rows={3} value={planReason} onChange={(e:any)=>setPlanReason(e.target.value)} />
       <div className="flex justify-end gap-2"><Btn variant="secondary" onClick={()=>setPlanOpen(false)}>Cancel</Btn><Btn disabled={!planReason.trim()} onClick={async()=>{ await act(()=>post(`/admin/users/${u.id}/subscription/change-plan`,{plan:newPlan,reason:planReason,complimentary_days:compDays}),'Plan changed.'); setPlanOpen(false); }}>Change plan</Btn></div></div>
     </Modal>
-  </Shell>;
+  </>;
 }

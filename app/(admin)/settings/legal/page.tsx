@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import Shell from '@/components/Shell';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
@@ -11,7 +10,7 @@ export default function Legal() {
   const load = () => { setLoading(true); get('/admin/settings').then((j:any)=>setS(j.settings||j)).catch(setErr).finally(()=>setLoading(false)); };
   React.useEffect(load, []);
   const save = async () => { try { await patch('/admin/settings', { privacy_policy: s.privacy_policy, terms: s.terms, owner_name: s.owner_name, contact_email: s.contact_email, address: s.address, governing_law: s.governing_law }); setMsg('Legal pages saved.'); } catch(e:any){ setErr(e); } };
-  return <Shell title="Legal pages" breadcrumb="System / Settings / Legal pages">
+  return <>
     {msg && <p className="mb-3 rounded-[12px] bg-green-50 p-3 text-sm font-medium text-green-800">{msg}</p>}
     <p className="mb-3 rounded-[12px] bg-amber-50 p-3 text-sm text-amber-800">Have these texts reviewed by a qualified lawyer before going live.</p>
     {err && <div className="mb-3"><Err error={err} onRetry={load} /></div>}
@@ -26,5 +25,5 @@ export default function Legal() {
         <div className="p-5"><Textarea label="" rows={12} value={s.privacy_policy||''} onChange={(e:any)=>setS({...s,privacy_policy:e.target.value})} /></div></Card>
       <Card><CardHead title="Terms" sub="Markdown." /><div className="p-5"><Textarea label="" rows={12} value={s.terms||''} onChange={(e:any)=>setS({...s,terms:e.target.value})} /></div></Card>
       <Btn onClick={save}>Save legal pages</Btn></div>}
-  </Shell>;
+  </>;
 }

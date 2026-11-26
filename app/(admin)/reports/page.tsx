@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import Shell from '@/components/Shell';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
@@ -15,7 +14,7 @@ export default function Reports() {
   React.useEffect(load, [load]);
   const exportCsv = () => { const rows = (d?.top_pairs||[]).map((t:any)=>[t.pair||t.pair_slug, t.count??t.conversions]); downloadCsv(`quick-img-convert-report-${from}-to-${to}.csv`, [['pair','conversions'], ...rows]); };
   const series = (d?.daily||d?.series||[]).map((x:any)=>({ label: x.date||x.label, value: x.conversions ?? x.value ?? 0 }));
-  return <Shell title="Reports" breadcrumb="Operations / Reports">
+  return <>
     <Card><div className="flex flex-wrap items-end gap-3 p-4">
       <Input label="From" type="date" value={from} onChange={(e:any)=>setFrom(e.target.value)} />
       <Input label="To" type="date" value={to} onChange={(e:any)=>setTo(e.target.value)} />
@@ -37,5 +36,5 @@ export default function Reports() {
       <Card><CardHead title="Top 20 pairs" /><div className="divide-y divide-line">{(d.top_pairs||[]).slice(0,20).map((t:any,i:number)=><div key={i} className="flex justify-between px-5 py-2.5 text-sm"><span>{t.pair || t.pair_slug}</span><span className="text-muted">{fmt(t.count ?? t.conversions)}</span></div>) || <Empty title="No pairs yet" sub="Top pairs appear once conversions are recorded." />}</div></Card>
       <Card className="lg:col-span-2"><CardHead title="Engine errors" /><div className="divide-y divide-line">{(d.engine_errors||[]).length ? d.engine_errors.map((e:any,i:number)=><div key={i} className="px-5 py-3 text-sm"><span className="font-semibold">{e.error_code || e.code}</span> <span className="text-muted">{e.pair_slug || ''} · {fmt(e.count)} times</span></div>) : <Empty title="No engine errors in this range" sub="Engine errors will be listed here." />}</div></Card>
     </div></> : null}
-  </Shell>;
+  </>;
 }

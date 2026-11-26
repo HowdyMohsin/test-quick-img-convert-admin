@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import Shell from '@/components/Shell';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
@@ -17,7 +16,7 @@ export default function EmailSettings() {
   const saveSmtp = async () => { try { await patch('/admin/settings', { smtp_host: s.smtp_host, smtp_port: s.smtp_port, smtp_user: s.smtp_user, smtp_from: s.smtp_from }); setMsg('SMTP settings saved.'); } catch(e:any){ setErr(e); } };
   const smtpCheck = async () => { try { const j:any = await post('/admin/settings/smtp-check', {}); setMsg(j.message || 'A check message was sent to your own admin address.'); } catch(e:any){ setErr(e); } };
   const saveTpl = async () => { try { await patch(`/admin/settings/email-templates/${sel}`, form); setMsg(`Template "${sel}" saved.`); load(); } catch(e:any){ setErr(e); } };
-  return <Shell title="Email and templates" breadcrumb="System / Settings / Email and templates">
+  return <>
     {msg && <p className="mb-3 rounded-[12px] bg-green-50 p-3 text-sm font-medium text-green-800">{msg}</p>}
     {err && <div className="mb-3"><Err error={err} onRetry={load} /></div>}
     {loading ? <Spinner /> : <div className="grid gap-4 lg:grid-cols-2">
@@ -36,5 +35,5 @@ export default function EmailSettings() {
           <p className="text-xs text-muted">Available placeholders: {'{name} {plan} {reference} {amount} {reason} {date} {link}'}</p>
           <Btn onClick={saveTpl}>Save template</Btn></div></Card>
     </div>}
-  </Shell>;
+  </>;
 }

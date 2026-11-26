@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import Shell from '@/components/Shell';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
@@ -15,7 +14,7 @@ export default function Formats() {
   const runCheck = async () => { setChecking(true); setProgress(0); try { await post('/admin/formats/health-check', {}); const t = setInterval(()=>setProgress(p=>{ if (p>=100){ clearInterval(t); setChecking(false); load(); } return Math.min(100, p+10); }), 200); } catch(e:any){ setErr(e); setChecking(false); } };
   const toggle = async (r:any) => { try { await patch(`/admin/formats/${r.pair_slug}`, { status: r.status==='disabled' ? 'healthy' : 'disabled' }); load(); } catch(e:any){ setErr(e); } };
   const filtered = rows.filter((r:any)=>{ const s = `${r.pair_slug||''} ${r.from_slug||''} ${r.to_slug||''}`.toLowerCase(); return (!q || s.includes(q.toLowerCase())) && (!filter || r.status===filter); });
-  return <Shell title="Formats" breadcrumb="Catalog / Formats">
+  return <>
     {msg && <p className="mb-3 rounded-[12px] bg-green-50 p-3 text-sm font-medium text-green-800">{msg}</p>}
     {err && <div className="mb-3"><Err error={err} onRetry={load} /></div>}
     <Card><div className="flex flex-wrap items-center gap-3 p-4">
@@ -32,5 +31,5 @@ export default function Formats() {
     <Card className="mt-4"><CardHead title="Sample files" sub="Bundled real samples used by Try with a sample file and by health checks." />
       <div className="flex flex-wrap items-end gap-3 p-5"><Input label="Format" value={sample.format} onChange={(e:any)=>setSample({format:e.target.value})} />
       <Btn variant="secondary" onClick={async()=>{ try { const j:any = await post('/admin/formats/make-sample', { format: sample.format }); setMsg(j.message || `Sample for ${sample.format} generated.`); } catch(e:any){ setErr(e); } }}>Generate sample</Btn></div></Card>
-  </Shell>;
+  </>;
 }

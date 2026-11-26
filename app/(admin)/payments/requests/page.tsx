@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import Shell from '@/components/Shell';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
@@ -12,7 +11,7 @@ export default function Requests() {
   const load = React.useCallback(() => { setLoading(true); get(`/admin/payments/requests?status=${status}`).then((j:any)=>setRows(j.items||j.requests||[])).catch(setErr).finally(()=>setLoading(false)); }, [status]);
   React.useEffect(load, [load]);
   const decide = async (id: string, action: string, body?: any) => { try { await post(`/admin/payments/requests/${id}/${action}`, body||{}); setMsg(action==='approve' ? 'Approved — plan upgraded, receipt emailed, user notified.' : 'Request rejected.'); setSel(null); load(); } catch (e:any) { setErr(e); } };
-  return <Shell title="Payment requests" breadcrumb="Customers / Payments / Requests">
+  return <>
     {msg && <p className="mb-3 rounded-[12px] bg-green-50 p-3 text-sm font-medium text-green-800">{msg}</p>}
     <Card><div className="flex flex-wrap gap-2 p-4">{['pending','approved','rejected','expired','all'].map(s=><button key={s} onClick={()=>setStatus(s)} className={`rounded-full px-4 py-2 text-sm font-semibold ${status===s?'bg-primary text-white':'bg-soft'}`}>{s[0].toUpperCase()+s.slice(1)}</button>)}</div>
     {err && <div className="px-4 pb-4"><Err error={err} onRetry={load} /></div>}
@@ -25,5 +24,5 @@ export default function Requests() {
       <Textarea label="Rejection reason (required)" rows={3} value={rejectReason} onChange={(e:any)=>setRejectReason(e.target.value)} />
       <div className="mt-4 flex justify-end gap-2"><Btn variant="secondary" onClick={()=>setSel(null)}>Cancel</Btn><Btn variant="danger" disabled={!rejectReason.trim()} onClick={()=>decide(sel.id,'reject',{reason:rejectReason})}>Reject request</Btn></div>
     </Modal>
-  </Shell>;
+  </>;
 }

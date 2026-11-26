@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import Shell from '@/components/Shell';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
@@ -12,7 +11,7 @@ export default function Users() {
   const load = React.useCallback(() => { setLoading(true); setErr(null); const p = new URLSearchParams({ page: String(page), limit: '25', ...(q?{search:q}:{}), ...(plan?{plan}:{}), ...(status?{status}:{}) });
     get(`/admin/users?${p}`).then((j:any)=>{ setRows(j.items||j.users||[]); setTotal(j.total??j.count??(j.items||j.users||[]).length); }).catch(setErr).finally(()=>setLoading(false)); }, [q, plan, status, page]);
   React.useEffect(load, [load]);
-  return <Shell title="Users" breadcrumb="Customers / Users">
+  return <>
     <Card><div className="flex flex-wrap gap-3 p-4">
       <div className="min-w-[220px] flex-1"><Input label="Search users" placeholder="Search name or email…" value={q} onChange={(e:any)=>{setQ(e.target.value); setPage(1);}} /></div>
       <Select label="Plan" value={plan} onChange={(e:any)=>{setPlan(e.target.value); setPage(1);}}><option value="">All plans</option><option value="free">Free</option><option value="basic">Basic</option><option value="pro">Pro</option></Select>
@@ -26,5 +25,5 @@ export default function Users() {
       <td className="px-3 py-3">{u.banned ? <Badge tone="danger">Banned</Badge> : <Badge tone="success">Active</Badge>}</td><td className="px-3 py-3 text-muted">{timeAgo(u.created_at)}</td>
       <td className="px-3 py-3 text-right"><a className="font-semibold text-primary" href={`/users/${u.id}`}>Open →</a></td></tr>)}</tbody></table></div>}
     <div className="flex items-center justify-between px-5 py-3 text-sm text-muted"><span>{!loading && !err ? `${fmt(total)} users` : ''}</span><div className="flex gap-2"><Btn variant="secondary" disabled={loading || !!err || page<=1} onClick={()=>setPage(page-1)}>Previous</Btn><Btn variant="secondary" disabled={loading || !!err || rows.length===0} onClick={()=>setPage(page+1)}>Next</Btn></div></div></Card>
-  </Shell>;
+  </>;
 }

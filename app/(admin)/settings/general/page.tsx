@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import Shell from '@/components/Shell';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
@@ -11,7 +10,7 @@ export default function General() {
   const load = () => { setLoading(true); setErr(null); get('/admin/settings').then((j:any)=>{ setS(j.settings||j); setLoaded(true); }).catch(setErr).finally(()=>setLoading(false)); };
   React.useEffect(load, []);
   const save = async () => { setSaveErr(null); setMsg(''); try { await patch('/admin/settings', s); setMsg('Settings saved.'); } catch(e:any){ setSaveErr(e); } };
-  return <Shell title="General settings" breadcrumb="System / Settings / General">
+  return <>
     {msg && <p className="mb-3 rounded-[12px] bg-green-50 p-3 text-sm font-medium text-green-800">{msg}</p>}
     {err && <div className="mb-3"><Err error={err} onRetry={load} /></div>}
     {loading ? <Spinner /> : !loaded ? null : <Card><div className="space-y-3 p-5">
@@ -27,5 +26,5 @@ export default function General() {
         <span><b>Maintenance mode.</b> The public site shows a maintenance page; the admin panel and webhooks stay reachable.</span></div>
       <Btn onClick={save}>Save settings</Btn>
       {saveErr && <p role="alert" className="text-sm font-medium text-danger">{saveErr.message || 'Could not save settings.'}</p>}</div></Card>}
-  </Shell>;
+  </>;
 }

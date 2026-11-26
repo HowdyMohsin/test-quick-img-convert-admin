@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import Shell from '@/components/Shell';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
@@ -13,7 +12,7 @@ export default function Coupons() {
   React.useEffect(load, []);
   const create = async (e:any) => { e.preventDefault(); try { await post('/admin/coupons', form); setMsg('Coupon created.'); load(); } catch (er:any){ setErr(er); } };
   const bulkGen = async () => { try { const j:any = await post('/admin/coupons/bulk-generate', bulk); setMsg(`Generated ${j.count ?? bulk.count} coupons.`); load(); } catch(er:any){ setErr(er); } };
-  return <Shell title="Coupons" breadcrumb="Catalog / Plans and Coupons / Coupons">
+  return <>
     {msg && <p className="mb-3 rounded-[12px] bg-green-50 p-3 text-sm font-medium text-green-800">{msg}</p>}
     {err && <div className="mb-3"><Err error={err} onRetry={load} /></div>}
     <div className="grid gap-4 lg:grid-cols-2">
@@ -35,5 +34,5 @@ export default function Coupons() {
       <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-y border-line bg-soft text-left text-muted"><th className="px-5 py-3">Code</th><th className="px-3 py-3">Value</th><th className="px-3 py-3">Used</th><th className="px-3 py-3">Expires</th><th className="px-3 py-3">Status</th><th className="px-3 py-3" /></tr></thead>
       <tbody>{rows.map((c:any)=><tr key={c.code} className="border-b border-line"><td className="px-5 py-3 font-mono font-semibold">{c.code}</td><td className="px-3 py-3">{c.type==='percent' ? `${c.value}% off` : money(c.value)}</td><td className="px-3 py-3">{fmt(c.used)} / {fmt(c.max_uses)}</td><td className="px-3 py-3">{fmtDate(c.expires_at)}</td><td className="px-3 py-3"><Badge tone={c.active?'success':'muted'}>{c.active?'Active':'Inactive'}</Badge></td>
       <td className="px-3 py-3 text-right"><Btn variant="ghost" onClick={async()=>{ try { await patch(`/admin/coupons/${c.code}`, { active: !c.active }); load(); } catch(er:any){ setErr(er); } }}>{c.active?'Deactivate':'Activate'}</Btn></td></tr>)}</tbody></table></div>}</Card>
-  </Shell>;
+  </>;
 }

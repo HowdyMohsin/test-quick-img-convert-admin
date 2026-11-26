@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import Shell from '@/components/Shell';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
@@ -14,7 +13,7 @@ export default function Providers() {
   const toggle = async (p:any) => { try { await patch(`/admin/payments/providers/${p.key}`, { enabled: !p.enabled }); setMsg(`${p.label} ${!p.enabled?'enabled':'disabled'}.`); load(); } catch(e:any){ setErr(e); } };
   const checkCfg = async (p:any) => { try { const j:any = await post(`/admin/payments/providers/${p.key}/check`, {}); setCheck(j.message || 'Configuration looks complete. No charge was created.'); } catch(e:any){ setErr(e); } };
   const saveCfg = async () => { try { await patch(`/admin/payments/providers/${edit.key}/config`, { config: cfg }); setMsg('Configuration saved (stored encrypted, write-only).'); setEdit(null); setCfg({}); load(); } catch(e:any){ setErr(e); } };
-  return <Shell title="Payment providers" breadcrumb="Customers / Payments / Providers">
+  return <>
     {msg && <p className="mb-3 rounded-[12px] bg-green-50 p-3 text-sm font-medium text-green-800">{msg}</p>}
     {check && <p className="mb-3 rounded-[12px] bg-indigo-50 p-3 text-sm text-indigo-800">{check}</p>}
     {err && <div className="mb-3"><Err error={err} onRetry={load} /></div>}
@@ -36,5 +35,5 @@ export default function Providers() {
         <div className="flex justify-end gap-2"><Btn variant="secondary" onClick={()=>setEdit(null)}>Cancel</Btn><Btn onClick={saveCfg}>Save configuration</Btn></div>
       </div>
     </Modal>
-  </Shell>;
+  </>;
 }

@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import Shell from '@/components/Shell';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
@@ -12,7 +11,7 @@ export default function Webhooks() {
   const load = React.useCallback(() => { setLoading(true); get(`/admin/payments/webhooks${provider?`?provider=${provider}`:''}`).then((j:any)=>setRows(j.items||j.events||[])).catch(setErr).finally(()=>setLoading(false)); }, [provider]);
   React.useEffect(load, [load]);
   const replay = async (e:any) => { try { await post(`/admin/payments/webhooks/${e.event_id || e.id}/replay`, {}); setMsg('Webhook replayed.'); load(); } catch (er:any) { setErr(er); } };
-  return <Shell title="Webhook log" breadcrumb="Customers / Payments / Webhook log">
+  return <>
     {msg && <p className="mb-3 rounded-[12px] bg-green-50 p-3 text-sm font-medium text-green-800">{msg}</p>}
     <Card><div className="flex gap-3 p-4"><Select label="" value={provider} onChange={(e:any)=>setProvider(e.target.value)}><option value="">All providers</option><option value="paddle">Paddle</option><option value="lemonsqueezy">Lemon Squeezy</option><option value="stripe">Stripe</option></Select><Btn variant="secondary" onClick={load}>Refresh</Btn></div>
     {err && <div className="px-4 pb-4"><Err error={err} onRetry={load} /></div>}
@@ -23,5 +22,5 @@ export default function Webhooks() {
     <Modal open={!!sel} onClose={()=>setSel(null)} title="Webhook payload">
       <pre className="max-h-96 overflow-auto rounded-[12px] bg-ink p-4 text-xs text-white">{JSON.stringify(sel?.payload || sel, null, 2)}</pre>
     </Modal>
-  </Shell>;
+  </>;
 }

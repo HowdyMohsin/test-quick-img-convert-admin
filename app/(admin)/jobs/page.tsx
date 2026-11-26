@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import Shell from '@/components/Shell';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
@@ -12,7 +11,7 @@ export default function Jobs() {
   const load = React.useCallback(() => { setLoading(true); get(`/admin/jobs${status?`?status=${status}`:''}`).then((j:any)=>setRows(j.items||j.jobs||[])).catch(setErr).finally(()=>setLoading(false)); }, [status]);
   React.useEffect(()=>{ load(); const t = setInterval(load, 15000); return ()=>clearInterval(t); }, [load]);
   const act = async (id:string, a:string) => { try { await post(`/admin/jobs/${id}/${a}`, {}); setMsg(`Job ${a==='cancel'?'cancelled':a==='retry'?'queued for retry':a}.`); load(); } catch(e:any){ setErr(e); } };
-  return <Shell title="Jobs" breadcrumb="Operations / Jobs">
+  return <>
     {msg && <p className="mb-3 rounded-[12px] bg-green-50 p-3 text-sm font-medium text-green-800">{msg}</p>}
     {err && <div className="mb-3"><Err error={err} onRetry={load} /></div>}
     <Card><div className="flex flex-wrap gap-3 p-4"><Select label="" value={status} onChange={(e:any)=>setStatus(e.target.value)}><option value="">All statuses</option><option value="queued">Queued</option><option value="running">Running</option><option value="done">Done</option><option value="failed">Failed</option><option value="canceled">Canceled</option></Select>
@@ -28,5 +27,5 @@ export default function Jobs() {
     <Modal open={!!sel} onClose={()=>setSel(null)} title="Job detail">
       <pre className="max-h-96 overflow-auto rounded-[12px] bg-ink p-4 text-xs text-white">{JSON.stringify(sel, null, 2)}</pre>
     </Modal>
-  </Shell>;
+  </>;
 }

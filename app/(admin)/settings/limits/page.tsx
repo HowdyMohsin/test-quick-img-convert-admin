@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import Shell from '@/components/Shell';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
@@ -11,7 +10,7 @@ export default function Limits() {
   const load = () => { setLoading(true); get('/admin/settings').then((j:any)=>setS(j.settings||j)).catch(setErr).finally(()=>setLoading(false)); };
   React.useEffect(load, []);
   const save = async () => { try { await patch('/admin/settings', { retention_hours: s.retention_hours, upload_rate_per_min: s.upload_rate_per_min, convert_rate_per_min: s.convert_rate_per_min, max_batch: s.max_batch, max_file_mb: s.max_file_mb }); setMsg('Limits saved.'); } catch(e:any){ setErr(e); } };
-  return <Shell title="Limits and retention" breadcrumb="System / Settings / Limits and retention">
+  return <>
     {msg && <p className="mb-3 rounded-[12px] bg-green-50 p-3 text-sm font-medium text-green-800">{msg}</p>}
     {err && <div className="mb-3"><Err error={err} onRetry={load} /></div>}
     {loading ? <Spinner /> : <Card><CardHead title="Limits and retention" /><div className="space-y-3 p-5">
@@ -22,5 +21,5 @@ export default function Limits() {
       <Input label="Max file size (MB)" type="number" min={1} value={s.max_file_mb??2048} onChange={(e:any)=>setS({...s,max_file_mb:Number(e.target.value)})} />
       <p className="text-sm text-muted">Uploads and outputs are auto-deleted after the retention period; files are stored with restrictive permissions.</p>
       <Btn onClick={save}>Save limits</Btn></div></Card>}
-  </Shell>;
+  </>;
 }

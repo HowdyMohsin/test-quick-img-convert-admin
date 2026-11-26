@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import Shell from '@/components/Shell';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
@@ -16,7 +15,7 @@ export default function Team() {
   const create = async (e:any) => { e.preventDefault(); try { const j:any = await post('/admin/team', form); setMsg(j.message || 'Admin created. Share the one-time password reset link with them.'); if (j.reset_link) setResetLink(j.reset_link); load(); } catch(er:any){ setErr(er); } };
   const savePerms = async () => { try { await patch(`/admin/team/${edit.id}`, { permissions: edit.permissions }); setMsg('Permissions saved.'); setEdit(null); load(); } catch(er:any){ setErr(er); } };
   const resetPw = async (a:any) => { try { const j:any = await post(`/admin/team/${a.id}/reset-link`, {}); setResetLink(j.reset_link || j.reset_url || ''); setMsg('One-time password reset link created — it works once and expires. Share it directly with this admin.'); } catch(er:any){ setErr(er); } };
-  return <Shell title="Team" breadcrumb="System / Team">
+  return <>
     {msg && <p className="mb-3 rounded-[12px] bg-green-50 p-3 text-sm font-medium text-green-800">{msg}</p>}
     {resetLink && <div className="mb-3"><p className="mb-1 text-sm font-semibold">One-time password reset link</p><CopyField value={resetLink} /></div>}
     {err && <div className="mb-3"><Err error={err} onRetry={load} /></div>}
@@ -40,5 +39,5 @@ export default function Team() {
       <div className="flex flex-wrap gap-2">{ALL_PERMS.map(p=><label key={p} className="flex items-center gap-1 rounded-full border border-line px-3 py-1.5 text-sm"><input type="checkbox" checked={(edit?.permissions||[]).includes(p)} onChange={()=>setEdit({...edit, permissions: (edit.permissions||[]).includes(p) ? edit.permissions.filter((x:string)=>x!==p) : [...(edit.permissions||[]), p]})} /> {p}</label>)}</div>
       <div className="mt-4 flex justify-end gap-2"><Btn variant="secondary" onClick={()=>setEdit(null)}>Cancel</Btn><Btn onClick={savePerms}>Save permissions</Btn></div>
     </Modal>
-  </Shell>;
+  </>;
 }
