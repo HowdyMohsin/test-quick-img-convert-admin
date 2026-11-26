@@ -1,0 +1,92 @@
+'use client';
+import React from 'react';
+import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+
+function toISO(d: Date) {
+  const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function parseISO(iso: string) { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d); }
+function fmtShort(iso: string) {
+  return parseISO(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+
+// Small custom date-range picker: no new dependency. The selected range
+// highlights in the calendar — start and end dates dark (indigo), the days
+// between them light indigo. Click once to set the start, again to set the end.
+export function DateRangePicker({ value, onChange }: { value: { from: string; to: string }; onChange: (from: string, to: string) => void }) {
+  const [open, setOpen] = React.useState(false);
+  const [view, setView] = React.useState(() => { const d = parseISO(value.to); return { y: d.getFullYear(), m: d.getMonth() }; });
+  const [start, setStart] = React.useState<string | null>(value.from);
+  const [end, setEnd] = React.useState<string | null>(value.to);
+  const [hover, setHover] = React.useState<string | null>(null);
+  const today = toISO(new Date());
+
+  // Keep the picker's selection in sync when the range changes from outside
+  // (e.g. a preset button), but only while the popover is closed.
+  React.useEffect(() => { if (!open) { setStart(value.from); setEnd(value.to); } }, [value.from, value.to, open]);
+
+  const daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
+  const firstWeekday = (new Date(view.y, view.m, 1).getDay() + 6) % 7; // Monday-first
+  const cells: (string | null)[] = [];
+  for (let i = 0; i < firstWeekday; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(toISO(new Date(view.y, view.m, d)));
+
+  const inRange = (iso: string) => {
+    const hi = end || hover;
+    if (!start || !hi) return false;
+    const [a, b] = start <= hi ? [start, hi] : [hi, start];
+    return iso > a && iso < b;
+  };
+  const isEndpoint = (iso: string) => iso === start || iso === end;
+
+  const pick = (iso: string) => {
+    if (iso > today) return;
+    if (!start || (start && end)) { setStart(iso); setEnd(null); return; }
+    if (iso < start) { setStart(iso); return; }
+    setEnd(iso);
+    onChange(start, iso);
+    setOpen(false);
+  };
+
+  const monthName = new Date(view.y, view.m, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  const shiftMonth = (dir: number) => {
+    const d = new Date(view.y, view.m + dir, 1);
+    setView({ y: d.getFullYear(), m: d.getMonth() });
+  };
+
+  return <div className="relative">
+    <button type="button" onClick={() => setOpen(!open)} className="flex items-center gap-1.5 rounded-[10px] border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink hover:bg-soft">
+      <Calendar size={15} />
+      <span>{fmtShort(value.from)} – {fmtShort(value.to)}</span>
+    </button>
+    {open && <>
+      <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+      <div className="absolute right-0 z-50 mt-2 w-[300px] rounded-[16px] border border-line bg-surface p-4 shadow-lg">
+        <div className="mb-2 flex items-center justify-between">
+          <button type="button" aria-label="Previous month" onClick={() => shiftMonth(-1)} className="rounded-[8px] p-1.5 hover:bg-soft"><ChevronLeft size={16} /></button>
+          <p className="text-sm font-semibold text-ink">{monthName}</p>
+          <button type="button" aria-label="Next month" onClick={() => shiftMonth(1)} className="rounded-[8px] p-1.5 hover:bg-soft"><ChevronRight size={16} /></button>
+        </div>
+        <div className="grid grid-cols-7 gap-0.5 text-center text-xs font-medium text-muted">
+          {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map(d => <div key={d} className="py-1">{d}</div>)}
+        </div>
+        <div className="grid grid-cols-7 gap-0.5">
+          {cells.map((iso, i) => {
+            if (!iso) return <div key={`blank-${i}`} />;
+            const future = iso > today;
+            const endpoint = isEndpoint(iso);
+            const between = inRange(iso);
+            return <button key={iso} type="button" disabled={future} onClick={() => pick(iso)} onMouseEnter={() => setHover(iso)} onMouseLeave={() => setHover(null)}
+              className={`rounded-full py-1.5 text-sm ${future ? 'cursor-not-allowed text-line' : endpoint ? 'bg-primary font-semibold text-white' : between ? 'bg-primary/15 font-medium text-ink' : 'text-ink hover:bg-soft'}`}>
+              {parseISO(iso).getDate()}
+            </button>;
+          })}
+        </div>
+        <p className="mt-3 text-xs text-muted">
+          {start && !end ? `Start: ${fmtShort(start)} — now pick the end date.` : 'Pick a start date, then an end date.'}
+        </p>
+      </div>
+    </>}
+  </div>;
+}
