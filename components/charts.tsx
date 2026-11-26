@@ -17,7 +17,7 @@ export function BarChart({ data, height = 180 }: { data: { label: string; value:
   return <div className="flex items-end gap-2" style={{ height }}>
     {data.map((d, i) => <div key={i} className="flex flex-1 flex-col items-center gap-1">
       <span className="text-xs font-semibold text-ink">{d.value}</span>
-      <div className="w-full rounded-t-[8px] bg-primary/80" style={{ height: `${Math.max((d.value / max) * (height - 48), 4)}px` }} title={`${d.label}: ${d.value}`} />
+      <div className="w-full rounded-t-[8px] bg-primary/80 transition-[height] duration-300 ease-out" style={{ height: `${Math.max((d.value / max) * (height - 48), 4)}px` }} title={`${d.label}: ${d.value}`} />
       <span className="truncate text-[11px] text-muted" style={{ maxWidth: 56 }}>{d.label}</span></div>)}
   </div>;
 }

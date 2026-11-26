@@ -101,7 +101,7 @@ export default function Plans() {
       <Btn onClick={openCreate}><Plus className="h-4 w-4" aria-hidden /> Add plan</Btn>
     </div>
     {loading ? <Spinner /> : rows.length===0 ? <Empty title="No plans yet" sub="Plans are seeded by the backend; they will appear here — or add one now." /> :
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{rows.map((p:any)=><Card key={p.id} className={`flex flex-col p-5 ${p.featured ? 'border-2 border-primary shadow-md' : ''} ${p.archived ? 'opacity-75' : ''}`}>
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{rows.map((p:any)=><Card key={p.id} interactive className={`flex flex-col p-5 ${p.featured ? 'border-2 border-primary shadow-md' : ''} ${p.archived ? 'opacity-75' : ''}`}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2"><h3 className="text-lg font-bold">{p.name}</h3>{p.featured ? <span className="inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-0.5 text-xs font-bold text-white"><Star className="h-3 w-3" aria-hidden />Most popular</span> : null}</div>

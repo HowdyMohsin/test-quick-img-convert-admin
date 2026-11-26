@@ -7,6 +7,7 @@ import { BRAND } from '@/lib/brand';
 import { filterNav, type NavGroup } from '@/lib/nav';
 import { api, get } from '@/lib/api';
 import { initials } from '@/lib/utils';
+import { useAnimatedOpen } from '@/lib/useAnimatedOpen';
 
 // Page titles are derived from the nav structure so the Shell mounts once
 // in the shared (admin) layout and navigation never re-runs the auth
@@ -42,6 +43,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [collapsed, setCollapsed] = React.useState(false);
   const [drawer, setDrawer] = React.useState(false);
+  // Mobile drawer enter/exit: stays mounted ~220ms after closing so the
+  // overlay fade + panel slide-out can play.
+  const { mounted: drawerMounted, visible: drawerVisible } = useAnimatedOpen(drawer, 220);
   const [me, setMe] = React.useState<any>(null);
   const [auth, setAuth] = React.useState<'checking' | 'ok'>('checking');
   const [pending, setPending] = React.useState<number | null>(null);
@@ -124,17 +128,17 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 const activeChild = it.children.some(c => isActive(c.href));
                 return <div key={it.id}>
                   <button onClick={() => toggleGroup(it.id)} aria-expanded={open} title={collapsed && !mobile ? it.label : undefined}
-                    className={`flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-sm font-medium ${activeChild ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5'}`}>
+                    className={`flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-sm font-medium transition-colors ${activeChild ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5'}`}>
                     <Icon className="h-5 w-5 shrink-0" aria-hidden />
                     {(!collapsed || mobile) && <span className="flex-1 text-left">{it.label}</span>}
                     {(!collapsed || mobile) && (open ? <ChevronDown className="h-4 w-4 shrink-0" aria-hidden /> : <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />)}
                   </button>
-                  {open && (!collapsed || mobile) && <div className="ml-4 mt-1 border-l-2 border-primary/60 pl-2">
+                  {open && (!collapsed || mobile) && <div className="ml-4 mt-1 animate-fade-in border-l-2 border-primary/60 pl-2">
                     {it.children.map(c => {
                       const ChildIcon = c.icon;
                       return (
                       <Link key={c.id} href={c.href!} aria-current={isActive(c.href) ? 'page' : undefined}
-                        className={`flex items-center gap-2 rounded-[10px] px-3 py-2 text-sm ${isActive(c.href) ? 'bg-primary/20 font-semibold text-white' : 'text-slate-300 hover:bg-white/5'}`}>
+                        className={`flex items-center gap-2 rounded-[10px] px-3 py-2 text-sm transition-colors ${isActive(c.href) ? 'bg-primary/20 font-semibold text-white' : 'text-slate-300 hover:bg-white/5'}`}>
                         <ChildIcon className="h-4 w-4 shrink-0" aria-hidden />{c.label}
                         {c.badge === 'pending' && pending !== null && pending > 0 && <span className="ml-auto rounded-full bg-danger px-2 py-0.5 text-[11px] font-bold text-white">{pending}</span>}
                       </Link>);})}
@@ -142,7 +146,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 </div>;
               }
               return <Link key={it.id} href={it.href!} aria-current={isActive(it.href) ? 'page' : undefined} title={collapsed && !mobile ? it.label : undefined}
-                className={`relative mb-0.5 flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-sm font-medium ${isActive(it.href) ? 'bg-primary/20 text-white' : 'text-slate-300 hover:bg-white/5'}`}>
+                className={`relative mb-0.5 flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-sm font-medium transition-colors ${isActive(it.href) ? 'bg-primary/20 text-white' : 'text-slate-300 hover:bg-white/5'}`}>
                 {isActive(it.href) && <span className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-full bg-primary" aria-hidden />}
                 <Icon className="h-5 w-5 shrink-0" aria-hidden />
                 {(!collapsed || mobile) && <span>{it.label}</span>}
@@ -155,9 +159,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-3 rounded-[12px] px-2 py-2">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold" title={admin.display_name || admin.name || admin.email || 'Admin'}>{initials(admin.display_name || admin.name || admin.email || 'Admin', admin.email)}</span>
           {(!collapsed || mobile) && <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{admin.display_name || admin.name || admin.email || 'Admin'}</p><p className="truncate text-xs text-slate-400">{admin.role || 'admin'}</p></div>}
-          {(!collapsed || mobile) && <button onClick={signOut} className="rounded-[8px] px-2 py-1 text-xs font-semibold text-slate-300 hover:bg-white/10" title="Sign out">Sign out</button>}
+          {(!collapsed || mobile) && <button onClick={signOut} className="rounded-[8px] px-2 py-1 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10" title="Sign out">Sign out</button>}
         </div>
-        {collapsed && !mobile && <button onClick={signOut} className="mt-1 w-full rounded-[8px] px-2 py-1 text-xs text-slate-300 hover:bg-white/10">Sign out</button>}
+        {collapsed && !mobile && <button onClick={signOut} className="mt-1 w-full rounded-[8px] px-2 py-1 text-xs text-slate-300 transition-colors hover:bg-white/10">Sign out</button>}
       </div>
     </div>
   );
@@ -173,21 +177,28 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   return (
     <PageTitleContext.Provider value={pageTitleValue}>
     <div className="flex min-h-screen bg-soft text-ink">
-      <aside className={`fixed inset-y-0 left-0 z-40 hidden transition-all lg:block ${collapsed ? 'w-[72px]' : 'w-[264px]'}`} aria-label="Sidebar">
+      <aside className={`fixed inset-y-0 left-0 z-40 hidden transition-all duration-200 ease-in-out lg:block ${collapsed ? 'w-[72px]' : 'w-[264px]'}`} aria-label="Sidebar">
         {sidebar(false)}
-        <button className="absolute -right-0 top-[68px] z-50 hidden h-7 w-7 translate-x-1/2 items-center justify-center rounded-full border border-line bg-surface text-sm font-bold text-ink shadow-md hover:bg-soft lg:flex"
+        <button className="absolute -right-0 top-[68px] z-50 hidden h-7 w-7 translate-x-1/2 items-center justify-center rounded-full border border-line bg-surface text-sm font-bold text-ink shadow-md transition-colors hover:bg-soft lg:flex"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} onClick={toggleCollapsed}>{collapsed ? <ChevronsRight className="h-4 w-4" /> : <ChevronsLeft className="h-4 w-4" />}</button>
       </aside>
-      {drawer && <div className="fixed inset-0 z-50 lg:hidden"><div className="absolute inset-0 bg-black/50" onClick={() => setDrawer(false)} /> <aside className="absolute inset-y-0 left-0">{sidebar(true)}</aside></div>}
-      <div className={`flex min-w-0 flex-1 flex-col ${collapsed ? 'lg:pl-[72px]' : 'lg:pl-[264px]'}`}>
+      {drawerMounted && <div className="fixed inset-0 z-50 lg:hidden">
+        <div className={`absolute inset-0 bg-black/50 transition-opacity duration-200 ${drawerVisible ? 'opacity-100' : 'opacity-0'}`} onClick={() => setDrawer(false)} />
+        <aside className={`absolute inset-y-0 left-0 transition-transform duration-200 ease-out ${drawerVisible ? 'translate-x-0' : '-translate-x-full'}`}>{sidebar(true)}</aside>
+      </div>}
+      <div className={`flex min-w-0 flex-1 flex-col transition-[padding] duration-200 ease-in-out ${collapsed ? 'lg:pl-[72px]' : 'lg:pl-[264px]'}`}>
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-surface px-4">
-          <button className="flex items-center justify-center rounded-[10px] p-2 hover:bg-soft lg:hidden" aria-label="Open menu" onClick={() => setDrawer(true)}><Menu className="h-5 w-5" /></button>
+          <button className="flex items-center justify-center rounded-[10px] p-2 transition-colors hover:bg-soft lg:hidden" aria-label="Open menu" onClick={() => setDrawer(true)}><Menu className="h-5 w-5" /></button>
           <div className="min-w-0 flex-1"><h1 className="truncate text-base font-bold">{title}</h1>{breadcrumb && <p className="truncate text-xs text-muted">{breadcrumb}</p>}</div>
-          <Link href="/payments/requests" title="Payment requests awaiting approval" className="flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-semibold hover:bg-soft">
+          <Link href="/payments/requests" title="Payment requests awaiting approval" className="flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-semibold transition-colors hover:bg-soft">
             Pending payment approvals {pending !== null && pending > 0 ? <span className="rounded-full bg-danger px-2 py-0.5 text-xs font-bold text-white">{pending}</span> : <span className="rounded-full bg-soft px-2 py-0.5 text-xs text-muted">{pending ?? 0}</span>}
           </Link>
         </header>
-        <main className="mx-auto w-full max-w-6xl flex-1 p-4 sm:p-6">{children}</main>
+        {/* Route transition: the Shell mounts once, so the content area
+            gets a subtle fade/slide on navigation (keyed by pathname).
+            Pages still mount fresh per route, so no data-fetch behaviour
+            changes — this only animates the swap. */}
+        <main className="mx-auto w-full max-w-6xl flex-1 p-4 sm:p-6"><div key={pathname} className="animate-page-in">{children}</div></main>
       </div>
     </div>
     </PageTitleContext.Provider>

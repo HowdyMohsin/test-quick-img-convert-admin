@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useAnimatedOpen } from '@/lib/useAnimatedOpen';
 
 function toISO(d: Date) {
   const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
@@ -16,6 +17,9 @@ function fmtShort(iso: string) {
 // between them light indigo. Click once to set the start, again to set the end.
 export function DateRangePicker({ value, onChange }: { value: { from: string; to: string }; onChange: (from: string, to: string) => void }) {
   const [open, setOpen] = React.useState(false);
+  // Popover enter/exit: stays mounted ~180ms after closing so the
+  // fade/scale-out can play instead of vanishing instantly.
+  const { mounted: popMounted, visible: popVisible } = useAnimatedOpen(open, 180);
   const [view, setView] = React.useState(() => { const d = parseISO(value.to); return { y: d.getFullYear(), m: d.getMonth() }; });
   const [start, setStart] = React.useState<string | null>(value.from);
   const [end, setEnd] = React.useState<string | null>(value.to);
@@ -56,17 +60,17 @@ export function DateRangePicker({ value, onChange }: { value: { from: string; to
   };
 
   return <div className="relative">
-    <button type="button" onClick={() => setOpen(!open)} className="flex items-center gap-1.5 rounded-[10px] border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink hover:bg-soft">
+    <button type="button" onClick={() => setOpen(!open)} className="flex items-center gap-1.5 rounded-[10px] border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-soft">
       <Calendar size={15} />
       <span>{fmtShort(value.from)} – {fmtShort(value.to)}</span>
     </button>
-    {open && <>
-      <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-      <div className="absolute right-0 z-50 mt-2 w-[300px] rounded-[16px] border border-line bg-surface p-4 shadow-lg">
+    {popMounted && <>
+      <div className={`fixed inset-0 z-40 transition-opacity duration-150 ${popVisible ? 'opacity-100' : 'opacity-0'}`} onClick={() => setOpen(false)} />
+      <div className={`absolute right-0 z-50 mt-2 w-[300px] rounded-[16px] border border-line bg-surface p-4 shadow-lg transition-all duration-150 ${popVisible ? 'scale-100 opacity-100' : 'scale-[0.97] opacity-0'}`} style={{ transformOrigin: 'top right' }}>
         <div className="mb-2 flex items-center justify-between">
-          <button type="button" aria-label="Previous month" onClick={() => shiftMonth(-1)} className="rounded-[8px] p-1.5 hover:bg-soft"><ChevronLeft size={16} /></button>
+          <button type="button" aria-label="Previous month" onClick={() => shiftMonth(-1)} className="rounded-[8px] p-1.5 transition-colors hover:bg-soft"><ChevronLeft size={16} /></button>
           <p className="text-sm font-semibold text-ink">{monthName}</p>
-          <button type="button" aria-label="Next month" onClick={() => shiftMonth(1)} className="rounded-[8px] p-1.5 hover:bg-soft"><ChevronRight size={16} /></button>
+          <button type="button" aria-label="Next month" onClick={() => shiftMonth(1)} className="rounded-[8px] p-1.5 transition-colors hover:bg-soft"><ChevronRight size={16} /></button>
         </div>
         <div className="grid grid-cols-7 gap-0.5 text-center text-xs font-medium text-muted">
           {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map(d => <div key={d} className="py-1">{d}</div>)}
@@ -78,7 +82,7 @@ export function DateRangePicker({ value, onChange }: { value: { from: string; to
             const endpoint = isEndpoint(iso);
             const between = inRange(iso);
             return <button key={iso} type="button" disabled={future} onClick={() => pick(iso)} onMouseEnter={() => setHover(iso)} onMouseLeave={() => setHover(null)}
-              className={`rounded-full py-1.5 text-sm ${future ? 'cursor-not-allowed text-line' : endpoint ? 'bg-primary font-semibold text-white' : between ? 'bg-primary/15 font-medium text-ink' : 'text-ink hover:bg-soft'}`}>
+              className={`rounded-full py-1.5 text-sm transition-colors ${future ? 'cursor-not-allowed text-line' : endpoint ? 'bg-primary font-semibold text-white' : between ? 'bg-primary/15 font-medium text-ink' : 'text-ink hover:bg-soft'}`}>
               {parseISO(iso).getDate()}
             </button>;
           })}
