@@ -107,7 +107,7 @@ export default function Dashboard() {
       <Stat label="MRR" value={money(k.mrr_cents ?? k.mrrCents)} sub="Monthly recurring revenue" />
     </div>
     <div className="mt-4 grid gap-4 lg:grid-cols-2">
-      <Card><CardHead title="Conversions" sub={rangeText} />
+      <Card className="min-w-0"><CardHead title="Conversions" sub={rangeText} />
         <div className="flex flex-wrap items-center gap-2 border-b border-line px-5 py-3">
           {PRESETS.map(p => <button key={p.label} type="button" onClick={() => setPreset(p.days, p.label)}
             className={`rounded-full px-3 py-1.5 text-sm font-semibold transition-colors ${range.label === p.label ? 'bg-primary text-white' : 'bg-soft text-ink hover:bg-slate-200'}`}>{p.label}</button>)}

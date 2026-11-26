@@ -190,9 +190,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-surface px-4">
           <button className="flex items-center justify-center rounded-[10px] p-2 transition-colors hover:bg-soft lg:hidden" aria-label="Open menu" onClick={() => setDrawer(true)}><Menu className="h-5 w-5" /></button>
           <div className="min-w-0 flex-1"><h1 className="truncate text-base font-bold">{title}</h1>{breadcrumb && <p className="truncate text-xs text-muted">{breadcrumb}</p>}</div>
-          <Link href="/payments/requests" title="Payment requests awaiting approval" className="flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-semibold transition-colors hover:bg-soft">
-            Pending payment approvals {pending !== null && pending > 0 ? <span className="rounded-full bg-danger px-2 py-0.5 text-xs font-bold text-white">{pending}</span> : <span className="rounded-full bg-soft px-2 py-0.5 text-xs text-muted">{pending ?? 0}</span>}
-          </Link>
         </header>
         {/* Route transition: the Shell mounts once, so the content area
             gets a subtle fade/slide on navigation (keyed by pathname).

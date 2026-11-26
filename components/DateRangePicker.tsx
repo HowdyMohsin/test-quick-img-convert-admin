@@ -30,6 +30,15 @@ export function DateRangePicker({ value, onChange }: { value: { from: string; to
   // (e.g. a preset button), but only while the popover is closed.
   React.useEffect(() => { if (!open) { setStart(value.from); setEnd(value.to); } }, [value.from, value.to, open]);
 
+  // Escape closes the popover too — the backdrop only handles outside
+  // clicks, and while open it sits above the controls it covers.
+  React.useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
+
   const daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
   const firstWeekday = (new Date(view.y, view.m, 1).getDay() + 6) % 7; // Monday-first
   const cells: (string | null)[] = [];
