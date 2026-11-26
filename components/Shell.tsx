@@ -187,7 +187,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         <aside className={`absolute inset-y-0 left-0 transition-transform duration-200 ease-out ${drawerVisible ? 'translate-x-0' : '-translate-x-full'}`}>{sidebar(true)}</aside>
       </div>}
       <div className={`flex min-w-0 flex-1 flex-col transition-[padding] duration-200 ease-in-out ${collapsed ? 'lg:pl-[72px]' : 'lg:pl-[264px]'}`}>
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-surface px-4">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-surface px-4 sm:px-6 lg:px-8">
           <button className="flex items-center justify-center rounded-[10px] p-2 transition-colors hover:bg-soft lg:hidden" aria-label="Open menu" onClick={() => setDrawer(true)}><Menu className="h-5 w-5" /></button>
           <div className="min-w-0 flex-1"><h1 className="truncate text-base font-bold">{title}</h1>{breadcrumb && <p className="truncate text-xs text-muted">{breadcrumb}</p>}</div>
         </header>
@@ -195,7 +195,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             gets a subtle fade/slide on navigation (keyed by pathname).
             Pages still mount fresh per route, so no data-fetch behaviour
             changes — this only animates the swap. */}
-        <main className="mx-auto w-full max-w-6xl flex-1 p-4 sm:p-6"><div key={pathname} className="animate-page-in">{children}</div></main>
+        <main className="w-full min-w-0 flex-1 p-4 sm:p-6 lg:p-8"><div key={pathname} className="animate-page-in">{children}</div></main>
       </div>
     </div>
     </PageTitleContext.Provider>

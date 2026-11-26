@@ -91,7 +91,7 @@ export default function Dashboard() {
     {loading && !d ? <>
       {/* Skeleton loading state for the dashboard: shimmer blocks in the
           shape of the real content instead of a bare spinner. */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-5">
         {[0, 1, 2, 3, 4].map(i => <Skeleton key={i} className="h-[104px] w-full" />)}
       </div>
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -99,7 +99,7 @@ export default function Dashboard() {
         <Skeleton className="h-[300px] w-full" />
       </div>
     </> : <>
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-5">
       <Stat label="Users" value={fmt(k.users ?? k.total_users)} sub={k.new_users_30d ? `${fmt(k.new_users_30d)} new in 30 days` : undefined} />
       <Stat label="Conversions today" value={fmt(k.conversions_today ?? k.conversionsToday)} />
       <Stat label="Success rate" value={pct(k.success_rate ?? k.successRate)} />
