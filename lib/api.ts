@@ -64,7 +64,7 @@ export const EP = {
   subscriptions: '/admin/payments/subscriptions', providers: '/admin/payments/providers',
   webhooks: '/admin/payments/webhooks', plans: '/admin/plans', coupons: '/admin/coupons',
   formats: '/admin/formats', adsSlots: '/admin/ads/slots', adsNetworks: '/admin/ads/networks',
-  adsRevenue: '/admin/ads/revenue', popups: '/admin/popups', announcements: '/admin/announcements',
+  adsRevenue: '/admin/ads/revenue', popups: '/admin/ads/popups', announcements: '/admin/ads/announcements',
   jobs: '/admin/jobs', reports: '/admin/reports', team: '/admin/team',
   settings: '/admin/settings', audit: '/admin/audit',
 } as const;

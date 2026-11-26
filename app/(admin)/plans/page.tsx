@@ -55,6 +55,7 @@ function StatusBadge({ p }: { p: any }) {
 export default function Plans() {
   const [rows, setRows] = React.useState<any[]>([]); const [err, setErr] = React.useState<any>(null); const [loading, setLoading] = React.useState(true); const [msg, setMsg] = React.useState('');
   const [edit, setEdit] = React.useState<any>(null); const [isNew, setIsNew] = React.useState(false); const [form, setForm] = React.useState<any>({});
+  const [archiveTarget, setArchiveTarget] = React.useState<any>(null); const [archiving, setArchiving] = React.useState(false); const [archiveErr, setArchiveErr] = React.useState<any>(null);
   const load = () => { setLoading(true); get('/admin/plans').then((j:any)=>setRows(j.items||j.plans||[])).catch(setErr).finally(()=>setLoading(false)); };
   React.useEffect(load, []);
   const openEdit = (p:any) => { setIsNew(false); setEdit(p); setForm({ name: p.name, price_cents: p.price_cents, price_yearly_cents: p.price_yearly_cents, limits: { ...(p.limits||{}) }, featured: p.featured||0, active: p.active!==false, provider_price_ids: { ...(p.provider_price_ids||{}) } }); };
@@ -81,12 +82,22 @@ export default function Plans() {
       closeModal(); load();
     } catch(e:any){ setErr(e); }
   };
-  const archive = async (p:any) => { if (!confirm(`Archive "${p.name}"? Existing subscribers keep their plan (grandfathered).`)) return; try { await post(`/admin/plans/${p.id}/archive`, {}); setMsg('Plan archived; existing subscribers are grandfathered.'); load(); } catch(e:any){ setErr(e); } };
+  // Archive uses an in-app modal, not window.confirm(): the native dialog
+  // never completes in the live browser, so Archive silently did nothing.
+  const archive = async () => {
+    if (!archiveTarget || archiving) return;
+    setArchiving(true); setArchiveErr(null);
+    try {
+      await post(`/admin/plans/${archiveTarget.id}/archive`, {});
+      setMsg('Plan archived; existing subscribers are grandfathered.');
+      setArchiveTarget(null); load();
+    } catch (e: any) { setArchiveErr(e); } finally { setArchiving(false); }
+  };
   return <>
     {msg && <p className="mb-3 rounded-[12px] bg-green-50 p-3 text-sm font-medium text-green-800">{msg}</p>}
     {err && <div className="mb-3"><Err error={err} onRetry={load} /></div>}
     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-      <p className="text-sm text-muted">{rows.length} plan{rows.length === 1 ? '' : 's'} · changes go live immediately, no deploy needed</p>
+      <p className="text-sm text-muted">{loading ? 'Loading plans…' : `${rows.length} plan${rows.length === 1 ? '' : 's'} · changes go live immediately, no deploy needed`}</p>
       <Btn onClick={openCreate}><Plus className="h-4 w-4" aria-hidden /> Add plan</Btn>
     </div>
     {loading ? <Spinner /> : rows.length===0 ? <Empty title="No plans yet" sub="Plans are seeded by the backend; they will appear here — or add one now." /> :
@@ -101,8 +112,16 @@ export default function Plans() {
       <div className="mt-3"><p className="text-3xl font-extrabold">{money(p.price_cents)}<span className="text-sm font-normal text-muted">/mo</span></p><p className="text-sm text-muted">{money(p.price_yearly_cents)} / year</p></div>
       <div className="my-4 border-t border-line" />
       <div className="flex-1"><PlanLimits limits={p.limits} /></div>
-      <div className="mt-4 flex gap-2"><Btn variant="secondary" onClick={()=>openEdit(p)}><Pencil className="h-4 w-4" aria-hidden /> Edit</Btn>{!p.archived && <Btn variant="danger" onClick={()=>archive(p)}><Archive className="h-4 w-4" aria-hidden /> Archive</Btn>}</div>
+      <div className="mt-4 flex gap-2"><Btn variant="secondary" onClick={()=>openEdit(p)}><Pencil className="h-4 w-4" aria-hidden /> Edit</Btn>{!p.archived && <Btn variant="danger" onClick={()=>{ setArchiveErr(null); setArchiveTarget(p); }}><Archive className="h-4 w-4" aria-hidden /> Archive</Btn>}</div>
     </Card>)}</div>}
+    <Modal open={!!archiveTarget} onClose={()=>{ if (!archiving) setArchiveTarget(null); }} title={`Archive plan — ${archiveTarget?.name || ''}`}>
+      <div className="space-y-3">
+        <p className="text-sm">Archive <b>{archiveTarget?.name}</b> ({money(archiveTarget?.price_cents)}/mo)? The plan stops being offered to new subscribers.</p>
+        <p className="rounded-[12px] bg-soft p-3 text-sm text-muted">Existing subscribers keep their plan (grandfathered) — archiving never cancels anyone.</p>
+        {archiveErr && <p className="rounded-[12px] border border-red-200 bg-red-50 p-3 text-sm font-medium text-danger">{String(archiveErr.message || archiveErr)}</p>}
+        <div className="flex justify-end gap-2"><Btn variant="secondary" disabled={archiving} onClick={()=>setArchiveTarget(null)}>Cancel</Btn><Btn variant="danger" disabled={archiving} onClick={archive}>{archiving ? 'Archiving…' : 'Archive plan'}</Btn></div>
+      </div>
+    </Modal>
     <Modal open={!!edit} onClose={closeModal} title={isNew ? 'Add plan' : `Edit plan — ${edit?.name || ''}`}>
       <div className="max-h-[70vh] space-y-3 overflow-y-auto pr-1">
         <Input label="Name" value={form.name||''} onChange={(e:any)=>setForm({...form,name:e.target.value})} />

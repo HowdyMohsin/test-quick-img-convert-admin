@@ -72,6 +72,13 @@ export const NAV: NavGroup[] = [
   ]},
 ];
 export const ALL_PERMS = ['dashboard','users','payments','plans','formats','ads','popups','jobs','reports','team','settings','audit'];
+// Human-readable labels for the raw permission keys (used on the Team page).
+export const PERM_LABELS: Record<string, string> = {
+  dashboard: 'Dashboard', users: 'Users', payments: 'Payments', plans: 'Plans',
+  formats: 'Formats', ads: 'Ads', popups: 'Popups', jobs: 'Jobs',
+  reports: 'Reports', team: 'Team', settings: 'Settings', audit: 'Audit Log',
+};
+export const permLabel = (p: string) => PERM_LABELS[p] || p;
 export function canSee(perm: string, permissions: any, role?: string): boolean {
   if (role === 'super_admin') return true;
   if (!permissions) return true;

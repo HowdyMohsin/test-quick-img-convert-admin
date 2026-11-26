@@ -9,10 +9,12 @@ export default function Dashboard() {
   const load = () => { setLoading(true); setErr(null); get('/admin/dashboard').then(setD).catch(setErr).finally(() => setLoading(false)); };
   React.useEffect(load, []);
   const k = d?.kpis || d || {};
-  const series = (d?.series_30d || d?.charts?.conversions_30d || []).map((x: any) => ({ label: x.date || x.label, value: x.conversions ?? x.value ?? 0 }));
+  // Backend returns the 30-day series under `chart_30d` (routers_admin.py
+  // dashboard endpoint); older/alternate keys kept as fallbacks.
+  const series = (d?.chart_30d || d?.series_30d || d?.charts?.conversions_30d || []).map((x: any) => ({ label: x.date || x.label, value: x.conversions ?? x.value ?? 0 }));
   const top = d?.top_pairs || d?.topPairs || [];
   const errors = d?.recent_errors || d?.recentErrors || [];
-  const disabled = d?.disabled_pairs || d?.disabledPairs || [];
+  const disabled = d?.disabled_pair_alerts || d?.disabled_pairs || d?.disabledPairs || [];
   return <>
     {err && <Err error={err} onRetry={load} />}
     {loading && !d ? <Spinner /> : <>

@@ -3,7 +3,7 @@ import React from 'react';
 import { get, post, patch, del, ApiException } from '@/lib/api';
 import { Card, CardHead, Btn, Badge, Input, Select, Textarea, Switch, Stat, Empty, Err, Spinner, Modal, Tabs, CopyField } from '@/components/ui';
 import { fmt, money, pct, timeAgo, fmtDate, downloadCsv } from '@/lib/utils';
-import { ALL_PERMS } from '@/lib/nav';
+import { ALL_PERMS, permLabel } from '@/lib/nav';
 
 export default function Team() {
   const [rows, setRows] = React.useState<any[]>([]); const [err, setErr] = React.useState<any>(null); const [loading, setLoading] = React.useState(true); const [msg, setMsg] = React.useState('');
@@ -24,19 +24,21 @@ export default function Team() {
         <Input label="Email" type="email" value={form.email} onChange={(e:any)=>setForm({...form,email:e.target.value})} required />
         <Input label="Name" value={form.display_name} onChange={(e:any)=>setForm({...form,display_name:e.target.value})} required />
         <Select label="Role" value={form.role} onChange={(e:any)=>setForm({...form,role:e.target.value})}><option value="staff">Staff</option><option value="super_admin">Super admin</option></Select>
-        <fieldset><legend className="mb-1 text-sm font-medium">Section permissions</legend><div className="flex flex-wrap gap-2">{ALL_PERMS.map(p=><label key={p} className="flex items-center gap-1 rounded-full border border-line px-3 py-1.5 text-sm"><input type="checkbox" checked={form.permissions.includes(p)} onChange={()=>togglePerm(p, form.permissions, (v)=>setForm({...form,permissions:v}))} /> {p}</label>)}</div></fieldset>
+        <fieldset><legend className="mb-1 text-sm font-medium">Section permissions</legend><div className="flex flex-wrap gap-2">{ALL_PERMS.map(p=><label key={p} className="flex items-center gap-1 rounded-full border border-line px-3 py-1.5 text-sm"><input type="checkbox" checked={form.permissions.includes(p)} onChange={()=>togglePerm(p, form.permissions, (v)=>setForm({...form,permissions:v}))} /> {permLabel(p)}</label>)}</div></fieldset>
         <Btn type="submit">Create admin</Btn></form></Card>
       <Card><CardHead title="Admins" />
         {loading ? <Spinner /> : rows.length===0 ? <Empty title="No other admins" sub="Add a staff admin with the form." /> :
         <div className="divide-y divide-line">{rows.map((a:any)=><div key={a.id} className="flex flex-wrap items-center gap-3 px-5 py-3 text-sm">
-          <div className="min-w-0 flex-1"><p className="font-semibold">{a.display_name || a.name || a.email}</p><p className="text-muted">{a.email} · {a.role} {a.active===false && '· inactive'}</p></div>
+          <div className="min-w-0 flex-1"><p className="truncate font-semibold">{a.display_name || a.name || a.email}</p><p className="truncate text-muted">{a.email} · {a.role} {a.active===false && '· inactive'}</p></div>
+          <div className="flex shrink-0 flex-wrap gap-2">
           <Btn variant="ghost" onClick={()=>setEdit({...a, permissions: Array.isArray(a.permissions) ? a.permissions : Object.keys(a.permissions||{}).filter((k:string)=>a.permissions[k])})}>Permissions</Btn>
           <Btn variant="secondary" onClick={()=>resetPw(a)}>Reset password</Btn>
           <Btn variant="ghost" onClick={async()=>{ try { await patch(`/admin/team/${a.id}`, { active: a.active===false }); load(); } catch(er:any){ setErr(er); } }}>{a.active===false?'Activate':'Deactivate'}</Btn>
+          </div>
         </div>)}</div>}</Card>
     </div>
     <Modal open={!!edit} onClose={()=>setEdit(null)} title={`Permissions — ${edit?.email || ''}`}>
-      <div className="flex flex-wrap gap-2">{ALL_PERMS.map(p=><label key={p} className="flex items-center gap-1 rounded-full border border-line px-3 py-1.5 text-sm"><input type="checkbox" checked={(edit?.permissions||[]).includes(p)} onChange={()=>setEdit({...edit, permissions: (edit.permissions||[]).includes(p) ? edit.permissions.filter((x:string)=>x!==p) : [...(edit.permissions||[]), p]})} /> {p}</label>)}</div>
+      <div className="flex flex-wrap gap-2">{ALL_PERMS.map(p=><label key={p} className="flex items-center gap-1 rounded-full border border-line px-3 py-1.5 text-sm"><input type="checkbox" checked={(edit?.permissions||[]).includes(p)} onChange={()=>setEdit({...edit, permissions: (edit.permissions||[]).includes(p) ? edit.permissions.filter((x:string)=>x!==p) : [...(edit.permissions||[]), p]})} /> {permLabel(p)}</label>)}</div>
       <div className="mt-4 flex justify-end gap-2"><Btn variant="secondary" onClick={()=>setEdit(null)}>Cancel</Btn><Btn onClick={savePerms}>Save permissions</Btn></div>
     </Modal>
   </>;

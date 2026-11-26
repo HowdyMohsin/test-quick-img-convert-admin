@@ -10,7 +10,10 @@ export default function Reports() {
   const monthAgo = new Date(Date.now()-29*86400000).toISOString().slice(0,10);
   const [from, setFrom] = React.useState(monthAgo); const [to, setTo] = React.useState(today);
   const [d, setD] = React.useState<any>(null); const [err, setErr] = React.useState<any>(null); const [loading, setLoading] = React.useState(true);
-  const load = React.useCallback(() => { setLoading(true); get(`/admin/reports?from=${from}&to=${to}`).then(setD).catch(setErr).finally(()=>setLoading(false)); }, [from, to]);
+  // A missing /admin/reports route (404) means "no data yet", not a red banner:
+  // render the empty aggregate so the page shows its empty states.
+  const EMPTY_REPORT = { totals: {}, daily: [], revenue_by_provider: [], funnel: {}, top_pairs: [], engine_errors: [] };
+  const load = React.useCallback(() => { setLoading(true); get(`/admin/reports?from=${from}&to=${to}`).then(setD).catch((e:any)=>{ if (e?.status === 404) { setD(EMPTY_REPORT); setErr(null); } else setErr(e); }).finally(()=>setLoading(false)); }, [from, to]);
   React.useEffect(load, [load]);
   const exportCsv = () => { const rows = (d?.top_pairs||[]).map((t:any)=>[t.pair||t.pair_slug, t.count??t.conversions]); downloadCsv(`quick-img-convert-report-${from}-to-${to}.csv`, [['pair','conversions'], ...rows]); };
   const series = (d?.daily||d?.series||[]).map((x:any)=>({ label: x.date||x.label, value: x.conversions ?? x.value ?? 0 }));
