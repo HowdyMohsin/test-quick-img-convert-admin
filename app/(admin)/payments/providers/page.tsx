@@ -34,9 +34,20 @@ export default function Providers() {
     <Modal open={!!edit} onClose={()=>setEdit(null)} title={`Configure ${edit?.label || ''}`}>
       <p className="mb-3 text-sm text-muted">Fields are write-only: existing values are shown masked and are never returned by the API.</p>
       <div className="space-y-3">
-        <Input label="Account / merchant id" value={cfg.account_id||''} onChange={(e:any)=>setCfg({...cfg,account_id:e.target.value})} placeholder="Stored encrypted" />
-        <Input label="API key / secret" type={keyShow ? 'text' : 'password'} autoComplete="off" value={cfg.api_key||''} onChange={(e:any)=>setCfg({...cfg,api_key:e.target.value})} placeholder="Leave blank to keep the current value" action={<button type="button" aria-label={keyShow ? 'Hide API key' : 'Show API key'} title={keyShow ? 'Hide API key' : 'Show API key'} onClick={()=>setKeyShow(!keyShow)} className="rounded-[6px] p-1 text-muted transition-colors hover:bg-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{keyShow ? <EyeOff size={16} /> : <Eye size={16} />}</button>} />
-        <Input label="Receiving account / wallet address" value={cfg.account||''} onChange={(e:any)=>setCfg({...cfg,account:e.target.value})} />
+        {/* Autofill trap: Chrome ignores autoComplete="off" on password fields
+            and fills the saved admin login (username + password) into the first
+            username/password-looking pair it finds. This modal opens with all
+            fields empty (setCfg({})), yet the login still appeared in the
+            Account and API key fields. These off-screen fields come first so
+            the browser fills THEM instead; they are never read or submitted
+            (saveCfg only sends cfg). */}
+        <div aria-hidden="true" className="pointer-events-none absolute left-[-9999px] top-0 h-px w-px overflow-hidden opacity-0" tabIndex={-1}>
+          <input type="text" name="trap-username" autoComplete="username" tabIndex={-1} defaultValue="" />
+          <input type="password" name="trap-password" autoComplete="current-password" tabIndex={-1} defaultValue="" />
+        </div>
+        <Input label="Account / merchant id" name="qic-provider-account" autoComplete="off" value={cfg.account_id||''} onChange={(e:any)=>setCfg({...cfg,account_id:e.target.value})} placeholder="Stored encrypted" />
+        <Input label="API key / secret" type={keyShow ? 'text' : 'password'} name="qic-provider-secret" autoComplete="new-password" value={cfg.api_key||''} onChange={(e:any)=>setCfg({...cfg,api_key:e.target.value})} placeholder="Leave blank to keep the current value" action={<button type="button" aria-label={keyShow ? 'Hide API key' : 'Show API key'} title={keyShow ? 'Hide API key' : 'Show API key'} onClick={()=>setKeyShow(!keyShow)} className="rounded-[6px] p-1 text-muted transition-colors hover:bg-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{keyShow ? <EyeOff size={16} /> : <Eye size={16} />}</button>} />
+        <Input label="Receiving account / wallet address" name="qic-provider-wallet" autoComplete="off" value={cfg.account||''} onChange={(e:any)=>setCfg({...cfg,account:e.target.value})} />
         <div className="flex justify-end gap-2"><Btn variant="secondary" onClick={()=>setEdit(null)}>Cancel</Btn><Btn onClick={saveCfg}>Save configuration</Btn></div>
       </div>
     </Modal>

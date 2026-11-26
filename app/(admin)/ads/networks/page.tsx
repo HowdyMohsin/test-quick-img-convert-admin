@@ -15,9 +15,10 @@ export default function Networks() {
     {err && <div className="mb-3"><Err error={err} onRetry={load} /></div>}
     {loading ? <Spinner /> : <div className="grid gap-4 lg:grid-cols-2">
       <Card><CardHead title="Networks" /><div className="space-y-3 p-5">
-        <Input label="AdSense publisher id" value={s.adsense_publisher_id||''} onChange={(e:any)=>setS({...s,adsense_publisher_id:e.target.value})} placeholder="pub-0000000000000000" />
+        <Input label="AdSense publisher id" name="qic-adsense-publisher" autoComplete="off" value={s.adsense_publisher_id||''} onChange={(e:any)=>setS({...s,adsense_publisher_id:e.target.value})} placeholder="pub-0000000000000000" />
         <div className="flex items-center gap-2 text-sm"><Switch checked={!!s.adsense_auto_ads} onChange={(v:boolean)=>setS({...s,adsense_auto_ads:v})} label="AdSense Auto Ads" /> AdSense Auto Ads</div>
-        <Input label="Adsterra key" type="password" autoComplete="off" value={s.adsterra_key||''} onChange={(e:any)=>setS({...s,adsterra_key:e.target.value})} placeholder="Leave blank to keep the current key" />
+        {/* autoComplete="new-password": Chrome ignores "off" on password fields and would fill the saved admin login here instead. */}
+        <Input label="Adsterra key" type="password" name="qic-adsterra-key" autoComplete="new-password" value={s.adsterra_key||''} onChange={(e:any)=>setS({...s,adsterra_key:e.target.value})} placeholder="Leave blank to keep the current key" />
         <div className="flex items-center gap-2 text-sm"><Switch checked={!!consent.enabled} onChange={(v:boolean)=>setConsent({...consent,enabled:v})} label="Consent mode" /> Consent mode enabled</div>
         <div className="flex items-center gap-2 text-sm"><Switch checked={!!consent.banner} onChange={(v:boolean)=>setConsent({...consent,banner:v})} label="Consent banner" /> Show consent banner</div>
         <Btn onClick={save}>Save network settings</Btn></div></Card>
